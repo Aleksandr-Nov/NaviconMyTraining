@@ -14,108 +14,198 @@ Navicon.nav_agreement  = (function()
 
     var contactOrAutoOnChange = function(context)
     {
-        try
+        let formContext = context.getFormContext();
+
+        let autoAttr = formContext.getAttribute("nav_autoid");
+        if(!autoAttr)
+        alert("nav_autoid is null");
+
+        let contactAttr = formContext.getAttribute("nav_contact");
+        if(!contactAttr)
+        alert("nav_contact is null");
+
+        let creditidAttr = formContext.getAttribute("nav_creditid")
+        if(!creditidAttr)
+        alert("nav_creditid is null");
+
+        let creditidControl = formContext.getControl("nav_creditid")
+        if(!creditidControl)
+            alert("nav_creditid is null");
+
+        if(autoAttr.getValue() != null)
         {
-            let formContext = context.getFormContext();
-
-            let autoAttr = formContext.getAttribute("nav_autoid");
-            let contactAttr = formContext.getAttribute("nav_contact");
-            let creditidAttr = formContext.getAttribute("nav_creditid")
-
-            let creditidControl = formContext.getControl("nav_creditid")
-            if( creditidControl == null || creditidControl == undefined )
-                throw new Error('nav_creditid is null');
-
-            if(autoAttr.getValue() != null && contactAttr.getValue() != null)
-            {
-                creditidControl.setVisible(true);
-
-                // let auto = autoAttr.getValue()[0]
-
-                // console.log("auto", auto);
-                // console.log("autoId", auto.id);
-                // let autoId = auto.id.replace(/[{}]/g,"");
-                // var fetchXml = `?fetchXml=
-                // <fetch>
-                //     <entity name="nav_agreement">
-                //         <attribute name="nav_creditid" />
-                //         <link-entity name="nav_auto" from="nav_autoid" to="nav_autoid" link-type="inner" alias="au">
-                //             <filter>
-                //             <condition attribute="nav_autoid" operator="eq" value='${autoId}' />
-                //             </filter>
-                //         </link-entity>
-                //     </entity>
-                // </fetch>`
-                // var creditId;
-                // Xrm.WebApi.retrieveMultipleRecords("nav_agreement", fetchXml).then(
-                //     function success(result) {
-                //         for (var i = 0; i < result.entities.length; i++) {
-                //             console.log(result.entities[i]);
-                //             creditId = result.entities[i]._nav_creditid_value;
-                            
-                //         } 
-                //         console.log("creditId",creditId);
-                //         //creditidControl.addPreSearch( filterCustomerCredit(formContext, creditId) );     
-                //         // creditidControl.addPreSearch(addLookupFilter(creditId));              
-                //     },
-                //     function (error) {
-                //         console.log(error.message);
-                //     }
-                // );
-                //creditidControl.addPreSearch( filterCustomerCredit(context) ) ;
-            }
-            else  
-            {
-                creditidControl.setVisible(false);
-                creditidAttr.setValue(null);
-                creditidAttr.fireOnChange();
-            }
-        }
-        catch (e) {
-            Xrm.Navigation.openErrorDialog({ errorCode:"NAV2023", details: e.message, message:"Ошибка при получении данных" }).then(
-                function (success) {
-                    formContext.ui.close();       
-                },
-                function (error) {
-                    formContext.ui.close();  
-                });
+            setFieldSumma(context);
         }
 
+        if(autoAttr.getValue() != null && contactAttr.getValue() != null)
+        {
+            creditidControl.setVisible(true);
+
+            creditPreSearch(context);
+        }
+        else  
+        {
+            creditidControl.setVisible(false);
+            creditidAttr.setValue(null);
+            creditidAttr.fireOnChange();
+        }
     };
 
-    // var filterCustomerCredit = function (context) {
-    //     console.log("Is Work");
-    //     let formContext = context.getFormContext();
+    var setFieldSumma = function(context)
+    {
+        let formContext = context.getFormContext();
 
-    //     var customerCreditFilter ="<filter><condition attribute='nav_name' operator='eq' value='Программа №3' /></filter>";
-    //     formContext.getControl("nav_creditid").addCustomFilter(customerCreditFilter, "nav_credit");
-    // }
+        let autoAttr = formContext.getAttribute("nav_autoid");
+        if(!autoAttr)
+            alert("nav_autoid is null");
 
+        let summaAttr = formContext.getAttribute("nav_summa");
+        if(!summaAttr)
+            alert("nav_summa is null");
 
-    // var addLookupFilter =  function () {
- 
-    //     try
-    //     {
-    //          fetchXml = "<filter type='and'><condition attribute='nav_creditid' operator = 'eq' value ='87102223-c769-ee11-8def-002248829cf8' /></filter>";
-    //          Xrm.Page.getControl("nav_creditid").addCustomFilter(fetchXml);
+        let autoid = autoAttr.getValue()[0].id;
+        autoid = autoid.replace(/[{}]/g,"");
 
-    //     } catch (e) {
-    //         //throw error
-    //         throw new Error(e.message);
-    //     }
-     
-    // }
+        let promiseAuto = Xrm.WebApi.retrieveRecord("nav_auto", `${autoid}`, "?$select=nav_used");
+        promiseAuto.then(
+            function success(result) {
+                console.log("nav_used",result.nav_used)
+                return result.nav_used;
+            },
+            function(error){
+                console.error(error.message);
+            }
+        ).then(
+            function success(used) {
+                if(used)
+                {
+                    let promiseAutoSumm = Xrm.WebApi.retrieveRecord("nav_auto", `${autoid}`, "?$select=nav_amount");
+                    promiseAutoSumm.then(
+                        function success(result) {
+                            if(result.nav_amount)
+                            {
+                                summaAttr.setValue(result.nav_amount)
+                            }
+                        },
+                        function(error){
+                            console.error(error.message);
+                        }
+                    );
+                }
+                else
+                {
+                    let fetchXml = 
+                        `<fetch no-lock="true">
+                            <entity name="nav_auto">
+                                <filter>
+                                    <condition attribute="nav_autoid" operator="eq" value=`+autoid+`/>
+                                </filter>
+                                <link-entity name="nav_model" from="nav_modelid" to="nav_modelid" link-type="inner" alias="model">
+                                    <attribute name="nav_recommendedamount" />
+                                </link-entity>
+                            </entity>
+                        </fetch>`;
+
+                    let promiseAutoSumm = Xrm.WebApi.retrieveRecord("nav_auto", fetchXml);
+                    promiseAutoSumm.then(
+                        function success(result) {
+                            console.log("result",result);
+                            if(result.nav_recommendedamount)
+                            {
+                                summaAttr.setValue(result.nav_recommendedamount)
+                            }
+                        },
+                        function(error){
+                            console.error(error.message);
+                        }
+                    );
+                }
+            },
+            function(error){
+                console.error(error.message);
+            }
+        );
+    }
+
+    var creditPreSearch = function(context)
+    {
+        let formContext = context.getFormContext();
+
+        let autoAttr = formContext.getAttribute("nav_autoid");
+        if(!autoAttr)
+            alert("nav_autoid is null");
+
+        let creditidControl = formContext.getControl("nav_creditid")
+        if(!creditidControl)
+            alert("nav_creditid is null");
+
+        let auto = autoAttr.getValue()[0]
+
+        let autoId = auto.id.replace(/[{}]/g,"");
+        let fetchXml = `?fetchXml=
+            <fetch>
+                <entity name="nav_credit">
+                <attribute name="nav_name" />
+                <attribute name="nav_creditid" />
+                <link-entity name="nav_nav_credit_nav_auto" from="nav_creditid" to="nav_creditid" intersect="true">
+                    <filter>
+                    <condition attribute="nav_autoid" operator="eq" value="` + autoId + `" uitype="nav_nav_credit_nav_auto" />
+                    </filter>
+                </link-entity>
+                </entity>
+            </fetch>`
+
+        let creditFilter = "";
+        Xrm.WebApi.retrieveMultipleRecords("nav_credit", fetchXml).then(
+            function success(result) {
+                creditFilter = "";
+                for (var i = 0; i < result.entities.length; i++) {
+                    creditFilter += `<value>${result.entities[i].nav_creditid}</value>`
+                }         
+            },
+            function (error) {
+                console.log(error.message);
+            }
+        );
+        creditidControl.addPreSearch(function () { myPreSearchCallBack(creditFilter); });
+    }
+
+    var myPreSearchCallBack =  function(creditFilter){
+            fetchXml = "<filter type='and'>" +
+                            "<condition attribute='nav_creditid' operator='in'>" +
+                                creditFilter +
+                            "</condition>" +
+                        "</filter>";
+            Xrm.Page.getControl("nav_creditid").addCustomFilter(fetchXml);
+     }
 
     var creditOnChange = function(context)
     {
         let formContext = context.getFormContext();
+
         let creditAttr = formContext.getAttribute("nav_creditid");
+        if(!creditAttr)
+            alert("nav_creditid is null");
+
         let summaControl = formContext.getControl("nav_summa")
+        if(!summaControl)
+            alert("nav_summa is null");
+
+        let dateAttr = formContext.getAttribute("nav_date");
+        if(!dateAttr)
+            alert("nav_date is null");
 
         if(creditAttr.getValue() != null)
         {
             formContext.ui.tabs.get("tab_2").setVisible(true);
             summaControl.setVisible(true);
+
+            if(dateAttr.getValue() != null)
+            {
+                checkCreditValidity(context);
+            }
+
+            insertCreditperiod(context);
         }
         else  
         {
@@ -125,21 +215,132 @@ Navicon.nav_agreement  = (function()
         }
     };
 
+    var insertCreditperiod = function(context)
+    {
+        let formContext = context.getFormContext();
+
+        let creditAttr = formContext.getAttribute("nav_creditid");
+        if(!creditAttr)
+            alert("nav_creditid is null");
+
+        let creditperiodAttr = formContext.getAttribute("nav_creditperiod");
+        if(!creditperiodAttr)
+            alert("nav_creditperiod is null");
+
+        if(creditAttr.getValue() != null)
+        {
+            let creditid = creditAttr.getValue()[0].id
+            creditid = creditid.replace(/[{}]/g,"");
+
+            let promiseCredit = Xrm.WebApi.retrieveRecord("nav_credit", `${creditid}`, "?$select=nav_creditperiod");
+            promiseCredit.then(
+                function success(result) {
+                    return result.nav_creditperiod;
+                },
+                function(error){
+                    console.error(error.message);
+                }
+            ).then(
+                function(creditperiod){
+                    if(creditperiod)
+                    { 
+                        creditperiodAttr.setValue(creditperiod);
+                    }
+                },
+                function(error){
+                    console.error(error.message);
+                }
+            );
+        }
+    }
+
+    var dateOnChange = function(context)
+    {
+        let formContext = context.getFormContext();
+
+        let creditAttr = formContext.getAttribute("nav_creditid");
+        if(!creditAttr)
+            alert("nav_creditid is null");
+
+        let dateAttr = formContext.getAttribute("nav_date");
+        if(!dateAttr)
+            alert("nav_date is null");
+
+        if(creditAttr.getValue() != null && dateAttr.getValue() != null)
+        {
+                checkCreditValidity(context);
+        }
+
+    };
+
+    var checkCreditValidity = function(context)
+    {
+        let formContext = context.getFormContext();
+
+        let creditAttr = formContext.getAttribute("nav_creditid");
+        if(!creditAttr)
+            alert("nav_creditid is null");
+
+        let dateAttr = formContext.getAttribute("nav_date");
+        if(!dateAttr)
+            alert("nav_date is null");
+
+        let dateControl = formContext.getControl("nav_date");
+        if(!dateControl)
+            alert("nav_date_controll is null");
+
+        let agreementDate = dateAttr.getValue()
+        let creditid = creditAttr.getValue()[0].id
+        if(agreementDate && creditid)
+        {
+            creditid = creditid.replace(/[{}]/g,"");
+            var promiseCredit = Xrm.WebApi.retrieveRecord("nav_credit", `${creditid}`, "?$select=nav_dateend");
+            promiseCredit.then(
+                function success(result) {
+                    return result.nav_dateend;
+                },
+                function(error){
+                    console.error(error.message);
+                }
+            ).then(
+                function(creditDate){
+                    if(new Date(creditDate) < new Date(agreementDate))
+                    { 
+                        dateControl.addNotification({
+                            messages: [`должна быть меньше даты окончания кредитной программы.`],
+                            notificationLevel: 'ERROR',
+                            uniqueId: 'date_notify_id'
+                        });
+                    }
+                    else {
+                        dateControl.clearNotification('date_notify_id');
+                    }
+                },
+                function(error){
+                    console.error(error.message);
+                }
+            );
+        }
+    }
+       
+
     var nameOnChange = function(context)
     {
         let formContext = context.getFormContext();
 
         let nameAttr = formContext.getAttribute("nav_name");
+        if(!nameAttr)
+            alert("nav_name is null");
 
         if(nameAttr.getValue() != null){
             let newName = replaceName(nameAttr.getValue());
-            nameAttr.setValue( newName );
+            nameAttr.setValue(newName);
         }
     };
 
     var replaceName = function(str)
     {
-        return str.replace(/[^0-9-]/g, '').replace(/^\-*|\-*$/g, '');
+        return str.replace(/[^0-9-]/g, "").replace(/^\-*|\-*$/g, "");
     }
 
     var clearTab = function(context)
@@ -155,72 +356,88 @@ Navicon.nav_agreement  = (function()
        }
     }
 
+    var checkUserRoles = function () {
+        var roles = Xrm.Utility.getGlobalContext().userSettings.roles;
+     
+        if (roles === null) return false;
+     
+        var hasRole = false;
+        roles.forEach(function (item) {
+            if (item.name.toLowerCase() === "Системный администратор" || item.id === "e93e2711-f165-ee11-9ae7-00224882b270") {
+                hasRole = true;
+            }
+        });
+   
+        return hasRole;
+    }
 
     return {
         onLoad : function (context)
         {
-            try
+            let formContext = context.getFormContext();
+
+            let formType = formContext.ui.getFormType();
+            if(formType == FormType.Create)
+            {                
+                formContext.ui.tabs.get("tab_2").setVisible(false);
+
+                let summaControl = formContext.getControl("nav_summa")
+                if(!summaControl)
+                    alert("nav_summa is null");
+
+                let factControl = formContext.getControl("nav_fact")
+                if(!factControl)
+                    alert("nav_fact is null");
+
+                let creditidControl = formContext.getControl("nav_creditid")
+                if(!creditidControl)
+                    alert("nav_creditid is null");
+
+                let owneridControl = formContext.getControl("ownerid")
+                if(!owneridControl)
+                    alert("ownerid is null");
+
+                summaControl.setVisible(false);
+                factControl.setVisible(false);
+                creditidControl.setVisible(false);
+                owneridControl.setVisible(false);
+            }
+            else
             {
-                let formContext = context.getFormContext();
-
-                let formType = formContext.ui.getFormType();
-                if(formType == FormType.Create)
-                {                
-                    formContext.ui.tabs.get("tab_2").setVisible(false);
-    
-                    let summaControl = formContext.getControl("nav_summa")
-                    if( summaControl == null || summaControl == undefined )
-                        throw new Error('nav_summa is null');
-
-                    let factControl = formContext.getControl("nav_fact")
-                    if( factControl == null || factControl == undefined )
-                        throw new Error('nav_fact is null');
-
-                    let creditidControl = formContext.getControl("nav_creditid")
-                    if( creditidControl == null || creditidControl == undefined )
-                        throw new Error('nav_creditid is null');
-
-                    let owneridControl = formContext.getControl("ownerid")
-                    if( owneridControl == null || owneridControl == undefined )
-                        throw new Error('ownerid is null');
-    
-                    summaControl.setVisible(false);
-                    factControl.setVisible(false);
-                    creditidControl.setVisible(false);
-                    owneridControl.setVisible(false);
-                }
-    
-    
-                let autoAttr = formContext.getAttribute("nav_autoid");
-                if( autoAttr == null || autoAttr == undefined )
-                    throw new Error('nav_autoid is null');
-                autoAttr.addOnChange( contactOrAutoOnChange );
-    
-                let contactAttr = formContext.getAttribute("nav_contact");
-                if( contactAttr == null || contactAttr == undefined )
-                    throw new Error('nav_contact is null');
-                contactAttr.addOnChange( contactOrAutoOnChange );
-    
-                let creditAttr = formContext.getAttribute("nav_creditid");
-                if( creditAttr == null || creditAttr == undefined )
-                    throw new Error('nav_creditid is null');
-                creditAttr.addOnChange( creditOnChange );
-    
-                let nameAttr = formContext.getAttribute("nav_name");
-                if( nameAttr == null || nameAttr == undefined )
-                    throw new Error('nav_name is null');
-                nameAttr.addOnChange( nameOnChange );
-
-            }
-            catch (e) {
-                Xrm.Navigation.openErrorDialog({ errorCode:"NAV2023", details: e.message, message:"Ошибка при получении данных" }).then(
-                    function (success) {
-                        formContext.ui.close();       
-                    },
-                    function (error) {
-                        formContext.ui.close();  
+                let formControls = formContext.getControl();
+                if(!checkUserRoles())
+                {
+                    formControls.forEach(control => {
+                        control.setDisabled(true);
                     });
+                }
             }
+
+
+            let autoAttr = formContext.getAttribute("nav_autoid");
+            if(!autoAttr)
+                alert("nav_autoid is null");
+            autoAttr.addOnChange(contactOrAutoOnChange);
+
+            let contactAttr = formContext.getAttribute("nav_contact");
+            if(!contactAttr)
+                alert("nav_contact is null");
+            contactAttr.addOnChange(contactOrAutoOnChange);
+
+            let creditAttr = formContext.getAttribute("nav_creditid");
+            if(!creditAttr)
+                alert("nav_creditid is null");
+            creditAttr.addOnChange(creditOnChange);
+
+            let nameAttr = formContext.getAttribute("nav_name");
+            if(!nameAttr)
+                alert("nav_name is null");
+            nameAttr.addOnChange(nameOnChange);
+
+            let dateAttr = formContext.getAttribute("nav_date");
+            if(!dateAttr)
+                alert("nav_date is null");
+            dateAttr.addOnChange(dateOnChange);            
         }
     }
 })();
