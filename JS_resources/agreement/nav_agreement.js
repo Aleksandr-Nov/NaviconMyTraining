@@ -29,15 +29,16 @@ Navicon.nav_agreement = (function () {
         var contactAttr = baseUtils.getAttribute("nav_contact");
         var creditidAttr = baseUtils.getAttribute("nav_creditid");
         var creditidControl = baseUtils.getControl("nav_creditid");
-        if (contactAttr && creditidAttr && creditidControl) {
-            if (contactAttr.getValue()) {
-                creditidControl.setVisible(true);
-                creditPreSearch();
-            } else {
-                creditidControl.setVisible(false);
-                creditidAttr.setValue(null);
-                creditidAttr.fireOnChange();
-            }
+        if (!contactAttr || !creditidAttr || !creditidControl) {
+            return;
+        }
+        if (contactAttr.getValue()) {
+            creditidControl.setVisible(true);
+            creditPreSearch();
+        } else {
+            creditidControl.setVisible(false);
+            creditidAttr.setValue(null);
+            creditidAttr.fireOnChange();
         }
     };
 
@@ -49,33 +50,35 @@ Navicon.nav_agreement = (function () {
     var setFieldSumma = function () {
         var autoAttr = baseUtils.getAttribute("nav_autoid");
         var summaAttr = baseUtils.getAttribute("nav_summa");
-        if (autoAttr && summaAttr) {
-            var autoid = autoAttr.getValue()[0].id;
-            if (autoid) {
-                Xrm.WebApi.retrieveRecord(
-                    "nav_auto",
-                    autoid,
-                    "?$select=nav_used"
-                ).then(
-                    function success(result) {
-                        if (result.nav_used) {
-                            usedSetSumma(autoid);
-                        } else {
-                            unusedSetSumma(autoid);
-                        }
-                    },
-                    function (error) {
-                        console.error(
-                            "Произошла ошибка при получении данных " +
-                                "из поля: `nav_used`, " +
-                                "таблицы: `nav_auto`, " +
-                                "функция: `setFieldSumma` " +
-                                error.message
-                        );
-                    }
+        if (!autoAttr || !summaAttr) {
+            return;
+        }
+        var autoid = autoAttr.getValue()[0].id;
+        if (!autoid) {
+            return;
+        }
+        Xrm.WebApi.retrieveRecord(
+            "nav_auto",
+            autoid,
+            "?$select=nav_used"
+        ).then(
+            function success(result) {
+                if (result.nav_used) {
+                    usedSetSumma(autoid);
+                } else {
+                    unusedSetSumma(autoid);
+                }
+            },
+            function (error) {
+                console.error(
+                    "Произошла ошибка при получении данных " +
+                        "из поля: `nav_used`, " +
+                        "таблицы: `nav_auto`, " +
+                        "функция: `setFieldSumma` " +
+                        error.message
                 );
             }
-        }
+        );
     };
 
     /**
@@ -86,28 +89,29 @@ Navicon.nav_agreement = (function () {
      */
     var usedSetSumma = function (autoid) {
         var summaAttr = baseUtils.getAttribute("nav_summa");
-        if (summaAttr && autoid) {
-            Xrm.WebApi.retrieveRecord(
-                "nav_auto",
-                autoid,
-                "?$select=nav_amount"
-            ).then(
-                function success(result) {
-                    if (result.nav_amount) {
-                        summaAttr.setValue(result.nav_amount);
-                    }
-                },
-                function (error) {
-                    console.error(
-                        "Произошла ошибка при получении данных " +
-                            "из поля: `nav_amount`, " +
-                            "таблицы: `nav_auto`, " +
-                            "функция: `usedSetSumma` " +
-                            error.message
-                    );
-                }
-            );
+        if (!summaAttr || !autoid) {
+            return;
         }
+        Xrm.WebApi.retrieveRecord(
+            "nav_auto",
+            autoid,
+            "?$select=nav_amount"
+        ).then(
+            function success(result) {
+                if (result.nav_amount) {
+                    summaAttr.setValue(result.nav_amount);
+                }
+            },
+            function (error) {
+                console.error(
+                    "Произошла ошибка при получении данных " +
+                        "из поля: `nav_amount`, " +
+                        "таблицы: `nav_auto`, " +
+                        "функция: `usedSetSumma` " +
+                        error.message
+                );
+            }
+        );
     };
 
     /**
@@ -118,37 +122,38 @@ Navicon.nav_agreement = (function () {
      */
     var unusedSetSumma = function (autoid) {
         var summaAttr = baseUtils.getAttribute("nav_summa");
-        if (summaAttr && autoid) {
-            var fetchXml = `?fetchXml=
-                            <fetch>
-                                <entity name="nav_auto">
-                                    <filter>
-                                        <condition attribute="nav_autoid" operator="eq" value="${autoid}" />
-                                    </filter>
-                                    <link-entity name="nav_model" from="nav_modelid" to="nav_modelid" link-type="inner" alias="model">
-                                        <attribute name="nav_recommendedamount" />
-                                    </link-entity>
-                                </entity>
-                            </fetch>`;
+        if (!summaAttr || !autoid) {
+            return;
+        }
+        var fetchXml = `?fetchXml=
+                        <fetch>
+                            <entity name="nav_auto">
+                                <filter>
+                                    <condition attribute="nav_autoid" operator="eq" value="${autoid}" />
+                                </filter>
+                                <link-entity name="nav_model" from="nav_modelid" to="nav_modelid" link-type="inner" alias="model">
+                                    <attribute name="nav_recommendedamount" />
+                                </link-entity>
+                            </entity>
+                        </fetch>`;
 
-            Xrm.WebApi.retrieveMultipleRecords("nav_auto", fetchXml).then(
-                function success(result) {
-                    if (result.entities[0]["model.nav_recommendedamount"]) {
-                        summaAttr.setValue(
-                            result.entities[0]["model.nav_recommendedamount"]
-                        );
-                    }
-                },
-                function (error) {
-                    console.error(
-                        "Произошла ошибка при получении данных " +
-                            "таблицы: `nav_auto`, " +
-                            "функция: `unusedSetSumma` " +
-                            error.message
+        Xrm.WebApi.retrieveMultipleRecords("nav_auto", fetchXml).then(
+            function success(result) {
+                if (result.entities[0]["model.nav_recommendedamount"]) {
+                    summaAttr.setValue(
+                        result.entities[0]["model.nav_recommendedamount"]
                     );
                 }
-            );
-        }
+            },
+            function (error) {
+                console.error(
+                    "Произошла ошибка при получении данных " +
+                        "таблицы: `nav_auto`, " +
+                        "функция: `unusedSetSumma` " +
+                        error.message
+                );
+            }
+        );
     };
 
     /**
@@ -160,53 +165,48 @@ Navicon.nav_agreement = (function () {
     var creditPreSearch = function () {
         var autoAttr = baseUtils.getAttribute("nav_autoid");
         var creditidControl = baseUtils.getControl("nav_creditid");
-        if (autoAttr && creditidControl) {
-            var autoId = autoAttr.getValue()[0].id;
-            if (autoId) {
-                var fetchXml =
-                    `?fetchXml=
-                        <fetch>
-                           <entity name="nav_credit">
-                                 <attribute name="nav_name" />
-                                 <attribute name="nav_creditid" />
-                                 <link-entity name="nav_nav_credit_nav_auto" from="nav_creditid" to="nav_creditid" intersect="true">
-                                    <filter>
-                                       <condition attribute="nav_autoid" operator="eq" value="` +
-                                          autoId +
-                                       `" uitype="nav_nav_credit_nav_auto" />
-                                    </filter>
-                                 </link-entity>
-                           </entity>
-                        </fetch>`;
+        if (!autoAttr || !creditidControl) {
+            return;
+        }
+        var autoId = autoAttr.getValue()[0].id;
+        if (!autoId) {
+            return;
+        }
+        var fetchXml =
+            `?fetchXml=
+                <fetch>
+                    <entity name="nav_credit">
+                        <attribute name="nav_name" />
+                        <attribute name="nav_creditid" />
+                        <link-entity name="nav_nav_credit_nav_auto" from="nav_creditid" to="nav_creditid" intersect="true">
+                            <filter>
+                                <condition attribute="nav_autoid" operator="eq" value="` +
+                                    autoId +
+                                `" uitype="nav_nav_credit_nav_auto" />
+                            </filter>
+                        </link-entity>
+                    </entity>
+                </fetch>`;
 
-                Xrm.WebApi.retrieveMultipleRecords("nav_credit", fetchXml).then(
-                    function success(creditIdList) {
-                        if (
-                            creditIdList.entities &&
-                            creditIdList.entities.length > 0
-                        ) {
-                            var creditFilter = "";
-                            for (
-                                var i = 0;
-                                i < creditIdList.entities.length;
-                                i++
-                            ) {
-                                creditFilter += `<value>${creditIdList.entities[i].nav_creditid}</value>`;
-                            }
-                            creditCustomFilter(creditFilter);
-                        }
-                    },
-                    function (error) {
-                        console.error(
-                            "Произошла ошибка при получении данных " +
-                                "таблицы: `nav_credit`, " +
-                                "функция: `creditPreSearch` " +
-                                error.message
-                        );
+        Xrm.WebApi.retrieveMultipleRecords("nav_credit", fetchXml).then(
+            function success(creditIdList) {
+                if (creditIdList.entities && creditIdList.entities.length > 0) {
+                    var creditFilter = "";
+                    for (var i = 0; i < creditIdList.entities.length; i++) {
+                        creditFilter += `<value>${creditIdList.entities[i].nav_creditid}</value>`;
                     }
+                    creditCustomFilter(creditFilter);
+                }
+            },
+            function (error) {
+                console.error(
+                    "Произошла ошибка при получении данных " +
+                        "таблицы: `nav_credit`, " +
+                        "функция: `creditPreSearch` " +
+                        error.message
                 );
             }
-        }
+        );
     };
 
     /**
@@ -217,36 +217,37 @@ Navicon.nav_agreement = (function () {
      */
     var creditCustomFilter = function (creditFilter) {
         var creditidControl = baseUtils.getControl("nav_creditid");
-        if (creditidControl && creditFilter) {
-            var fetchXml =
-                  `<fetch>
-                     <entity name="nav_credit">
-                           <attribute name="nav_name" />
-                           <attribute name="nav_creditid" />
-                           <filter>
-                              <condition attribute="nav_creditid" operator="in">` +
-                                 creditFilter +
-                              `</condition>
-                           </filter>
-                        </entity>
-                  </fetch>`;
-
-            var layoutXml =
-                "<grid name='resultset' object='1' jump='productid' select='1' icon='1' preview='1'>" +
-                  "<row name='result' id='nav_creditid'>" +
-                     "<cell name='nav_name' width='150' />" +
-                  "</row>" +
-                "</grid>";
-
-            creditidControl.addCustomView(
-                "{00000000-0000-0000-0000-000000000001}",
-                "nav_credit",
-                "This my custom view",
-                fetchXml,
-                layoutXml,
-                true
-            );
+        if (!creditidControl || !creditFilter) {
+            return;
         }
+        var fetchXml =
+                `<fetch>
+                    <entity name="nav_credit">
+                        <attribute name="nav_name" />
+                        <attribute name="nav_creditid" />
+                        <filter>
+                            <condition attribute="nav_creditid" operator="in">` +
+                                creditFilter +
+                            `</condition>
+                        </filter>
+                    </entity>
+                </fetch>`;
+
+        var layoutXml =
+            "<grid name='resultset' object='1' jump='productid' select='1' icon='1' preview='1'>" +
+                "<row name='result' id='nav_creditid'>" +
+                    "<cell name='nav_name' width='150' />" +
+                "</row>" +
+            "</grid>";
+
+        creditidControl.addCustomView(
+            "{00000000-0000-0000-0000-000000000001}",
+            "nav_credit",
+            "This my custom view",
+            fetchXml,
+            layoutXml,
+            true
+        );
     };
 
     /**
@@ -264,22 +265,31 @@ Navicon.nav_agreement = (function () {
         var creditAttr = baseUtils.getAttribute("nav_creditid");
         var summaControl = baseUtils.getControl("nav_summa");
         var dateAttr = baseUtils.getAttribute("nav_date");
-        if (creditAttr && summaControl && dateAttr) {
-            creditPreSearch();
-            if (creditAttr.getValue()) {
-                var creditTab = formContext.ui.tabs.get("tab_2");
-                if (creditTab) {
-                    creditTab.setVisible(true);
-                }
-                summaControl.setVisible(true);
+        if (!creditAttr) {
+            return;
+        }
+        creditPreSearch();
 
+        if (creditAttr.getValue()) {
+            var creditTab = formContext.ui.tabs.get("tab_2");
+            if (creditTab) {
+                creditTab.setVisible(true);
+            }
+            if (summaControl){
+                summaControl.setVisible(true);
+            }
+            if (dateAttr) {
                 if (dateAttr.getValue()) {
                     checkCreditValidity();
-                }
-
-                insertCreditperiod();
-            } else {
-                formContext.ui.tabs.get("tab_2").setVisible(false);
+                }        
+            }
+            insertCreditperiod();
+        } else {
+            var creditTab = formContext.ui.tabs.get("tab_2");
+            if (creditTab) {
+                creditTab.setVisible(false);
+            }
+            if (summaControl){
                 summaControl.setVisible(false);
             }
         }
@@ -293,30 +303,32 @@ Navicon.nav_agreement = (function () {
     var insertCreditperiod = function () {
         var creditAttr = baseUtils.getAttribute("nav_creditid");
         var creditperiodAttr = baseUtils.getAttribute("nav_creditperiod");
-        if (creditAttr && creditperiodAttr) {
-            var creditid = creditAttr.getValue()[0].id;
-            if (creditid) {
-                Xrm.WebApi.retrieveRecord(
-                    "nav_credit",
-                    creditid,
-                    "?$select=nav_creditperiod"
-                ).then(
-                    function (result) {
-                        if (result.nav_creditperiod)
-                            creditperiodAttr.setValue(result.nav_creditperiod);
-                    },
-                    function (error) {
-                        console.error(
-                            "Произошла ошибка при получении данных" +
-                                "из поля: `nav_creditperiod`, " +
-                                "таблицы: `nav_credit`, " +
-                                "функция: `insertCreditperiod` " +
-                                error.message
-                        );
-                    }
+        if (!creditAttr || !creditperiodAttr) {
+            return;
+        }
+        var creditid = creditAttr.getValue()[0].id;
+        if (!creditid) {
+            return;
+        }
+        Xrm.WebApi.retrieveRecord(
+            "nav_credit",
+            creditid,
+            "?$select=nav_creditperiod"
+        ).then(
+            function (result) {
+                if (result.nav_creditperiod)
+                    creditperiodAttr.setValue(result.nav_creditperiod);
+            },
+            function (error) {
+                console.error(
+                    "Произошла ошибка при получении данных" +
+                        "из поля: `nav_creditperiod`, " +
+                        "таблицы: `nav_credit`, " +
+                        "функция: `insertCreditperiod` " +
+                        error.message
                 );
             }
-        }
+        );
     };
 
     /**
@@ -327,12 +339,7 @@ Navicon.nav_agreement = (function () {
     var dateOnChange = function () {
         var creditAttr = baseUtils.getAttribute("nav_creditid");
         var dateAttr = baseUtils.getAttribute("nav_date");
-        if (
-            creditAttr &&
-            dateAttr &&
-            creditAttr.getValue() &&
-            dateAttr.getValue()
-        ) {
+        if (creditAttr && dateAttr && creditAttr.getValue() && dateAttr.getValue()) {
             checkCreditValidity();
         }
     };
@@ -353,41 +360,40 @@ Navicon.nav_agreement = (function () {
 
         var agreementDate = dateAttr.getValue();
         var creditid = creditAttr.getValue()[0].id;
-        if (agreementDate && creditid) {
-            Xrm.WebApi.retrieveRecord(
-                "nav_credit",
-                creditid,
-                "?$select=nav_dateend"
-            ).then(
-                function (result) {
-                    if (!result.nav_dateend) {
-                        return;
-                    }
-                    if (
-                        new Date(result.nav_dateend) < new Date(agreementDate)
-                    ) {
-                        dateControl.addNotification({
-                            messages: [
-                                `должна быть меньше даты окончания кредитной программы.`,
-                            ],
-                            notificationLevel: "ERROR",
-                            uniqueId: "date_notify_id",
-                        });
-                    } else {
-                        dateControl.clearNotification("date_notify_id");
-                    }
-                },
-                function (error) {
-                    console.error(
-                        "Произошла ошибка при получении данных" +
-                            "из поля: `nav_dateend`, " +
-                            "таблицы: `nav_credit`, " +
-                            "функция: `checkCreditValidity` " +
-                            error.message
-                    );
-                }
-            );
+        if (!agreementDate || !creditid) {
+            return;
         }
+        Xrm.WebApi.retrieveRecord(
+            "nav_credit",
+            creditid,
+            "?$select=nav_dateend"
+        ).then(
+            function (result) {
+                if (!result.nav_dateend) {
+                    return;
+                }
+                if (result.nav_dateend < agreementDate) {
+                    dateControl.addNotification({
+                        messages: [
+                            `должна быть меньше даты окончания кредитной программы.`,
+                        ],
+                        notificationLevel: "ERROR",
+                        uniqueId: "date_notify_id",
+                    });
+                } else {
+                    dateControl.clearNotification("date_notify_id");
+                }
+            },
+            function (error) {
+                console.error(
+                    "Произошла ошибка при получении данных" +
+                        "из поля: `nav_dateend`, " +
+                        "таблицы: `nav_credit`, " +
+                        "функция: `checkCreditValidity` " +
+                        error.message
+                );
+            }
+        );
     };
 
     /**
@@ -417,14 +423,7 @@ Navicon.nav_agreement = (function () {
      * @return {boolean} true, если пользователь Cистемный администратор.
      */
     var checkUserRoles = function (roles) {
-        if (
-            roles === null ||
-            roles.length === 0 ||
-            !roles.includes("Cистемный администратор")
-        ) {
-            return false;
-        }
-        return true;
+        return (roles === null || roles.length === 0 || !roles.includes("Cистемный администратор"));
     };
 
     /**

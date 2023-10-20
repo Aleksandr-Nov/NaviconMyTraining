@@ -36,7 +36,12 @@ function getDataForTable() {
             }
         },
         function (error) {
-            console.error(error.message);
+            console.error(
+                "Произошла ошибка при получении данных" +
+                    "таблицы: `nav_model`, " +
+                    "функция: `getDataForTable` " +
+                    error.message
+            );
         }
     );
 }

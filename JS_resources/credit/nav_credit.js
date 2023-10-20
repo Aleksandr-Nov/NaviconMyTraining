@@ -1,7 +1,7 @@
 var Navicon = Navicon || {};
 
 Navicon.nav_credit = (function () {
-    const minYearForCredit = 1;
+    const minPeriodForCredit = 1;
 
     /**
      *	Проверка: дата оконнчания > дата начала.
@@ -19,10 +19,10 @@ Navicon.nav_credit = (function () {
         var endDate = dateendAttr.getValue();
 
         if (startDate && endDate) {
-            if (checkDateRange(startDate, endDate)) {
+            if (!checkDateRange(startDate, endDate)) {
                 dateendControl.addNotification({
                     messages: [
-                        `не должна быть меньше даты начала менее чем на: ${minYearForCredit} год`,
+                        `не должна быть меньше даты начала менее чем на: ${minPeriodForCredit} год`,
                     ],
                     notificationLevel: "ERROR",
                     uniqueId: "date_notify_id",
@@ -47,19 +47,17 @@ Navicon.nav_credit = (function () {
         var endmonth = endDate.getMonth();
         var endyear = endDate.getFullYear();
 
-        if (endyear - startyear > minYearForCredit) return false;
+        if (endyear - startyear > minPeriodForCredit) return true;
 
-        if (endyear <= startyear) return true;
+        if (endyear <= startyear) return false;
 
-        if (endmonth > startmonth) return false;
-        else if (endmonth == startmonth) {
-            if (endday > startday) {
-                return false;
-            } else {
-                return true;
-            }
-        } else {
+        if (endmonth > startmonth) {
             return true;
+        } 
+        else if (endmonth == startmonth) {
+            return endday > startday 
+        } else {
+            return false;
         }
     };
 
