@@ -15,6 +15,11 @@ Navicon.nav_communication = (function () {
       BulkEdit: 6,
    };
 
+   /**
+    *	Отображени полей в зависимости от значения поля "Тип".
+    * 
+    * Задание №2 ч.1 п.7
+    */
    var changeType = function (context) {
       var phoneAttr = baseUtils.getAttribute("nav_phone");
       var emailAttr = baseUtils.getAttribute("nav_email");

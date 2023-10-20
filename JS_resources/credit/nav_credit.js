@@ -3,6 +3,11 @@ var Navicon = Navicon || {};
 Navicon.nav_credit = (function () {
    const minYearForCredit = 1;
 
+   /**
+    *	Проверка: дата оконнчания > дата начала.
+    * 
+    * Задание №2 ч.1 п.5
+    */
    var dateOnChange = function (context) {
       var datestartAttr = baseUtils.getAttribute("nav_datestart");
       var dateendAttr = baseUtils.getAttribute("nav_dateend");
@@ -27,6 +32,11 @@ Navicon.nav_credit = (function () {
       }
    };
 
+   /**
+    *	Проверка: дата оконнчания > дата начала.
+    * 
+    * Задание №2 ч.1 п.5
+    */
    var checkDateRange = function (startDate, endDate) {
       var startday = startDate.getDate();
       var startmonth = startDate.getMonth();

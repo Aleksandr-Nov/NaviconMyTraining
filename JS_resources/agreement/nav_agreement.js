@@ -10,11 +10,21 @@ Navicon.nav_agreement = (function () {
       BulkEdit: 6,
    };
 
+   /**
+    * Показать поля после выбора значений. 
+    * Фильтрация кредитных программ.
+    * Стоимость должна подставляться автоматически в соответствии с правилом
+    *
+    * Задание №2 ч.1 п.2
+    * Задание №2 ч.1 п.4
+    * Задание №3 ч.2 п.3
+    */
    var contactOrAutoOnChange = function (context) {
       var autoAttr = baseUtils.getAttribute("nav_autoid");
-      if (autoAttr && autoAttr.getValue()) {
-         setFieldSumma();
+      if (!autoAttr && !autoAttr.getValue()) {
+         return;
       }
+      setFieldSumma();
 
       var contactAttr = baseUtils.getAttribute("nav_contact");
       var creditidAttr = baseUtils.getAttribute("nav_creditid");
@@ -31,14 +41,17 @@ Navicon.nav_agreement = (function () {
       }
    };
 
+   /**
+    * Стоимость должна подставляться автоматически в соответствии с правилом
+    *
+    * Задание №3 ч.2 п.3
+    */
    var setFieldSumma = function () {
       var autoAttr = baseUtils.getAttribute("nav_autoid");
       var summaAttr = baseUtils.getAttribute("nav_summa");
       if (autoAttr && summaAttr) {
          var autoid = autoAttr.getValue()[0].id;
          if (autoid) {
-            autoid = autoid.replace(/[{}]/g, "");
-
             Xrm.WebApi.retrieveRecord(
                "nav_auto",
                autoid,
@@ -59,6 +72,12 @@ Navicon.nav_agreement = (function () {
       }
    };
 
+   /**
+    * Стоимость должна подставляться автоматически в соответствии с правилом
+    * Если авто с пробегом.
+    * 
+    * Задание №3 ч.2 п.3
+    */
    var usedSetSumma = function (autoid) {
       var summaAttr = baseUtils.getAttribute("nav_summa");
       if (summaAttr && autoid) {
@@ -80,6 +99,12 @@ Navicon.nav_agreement = (function () {
       }
    };
 
+   /**
+    * Стоимость должна подставляться автоматически в соответствии с правилом
+    * Если авто без пробега.
+    * 
+    * Задание №3 ч.2 п.3
+    */
    var unusedSetSumma = function (autoid) {
       var summaAttr = baseUtils.getAttribute("nav_summa");
       if (summaAttr && autoid) {
@@ -97,7 +122,6 @@ Navicon.nav_agreement = (function () {
 
          Xrm.WebApi.retrieveMultipleRecords("nav_auto", fetchXml).then(
             function success(result) {
-               console.log("result", result);
                if (result.entities[0]["model.nav_recommendedamount"]) {
                   summaAttr.setValue(
                      result.entities[0]["model.nav_recommendedamount"]
@@ -111,13 +135,18 @@ Navicon.nav_agreement = (function () {
       }
    };
 
+   /**
+    * Фильтрация кредитных программ.
+    * Получение id крежитных программ по автомобилю
+    *
+    * Задание №2 ч.1 п.4
+    */
    var creditPreSearch = function () {
       var autoAttr = baseUtils.getAttribute("nav_autoid");
       var creditidControl = baseUtils.getControl("nav_creditid");
       if (autoAttr && creditidControl) {
-         var auto = autoAttr.getValue()[0];
-         if (auto) {
-            var autoId = auto.id.replace(/[{}]/g, "");
+         var autoId = autoAttr.getValue()[0].id;
+         if (autoId) {
             var fetchXml =
                `?fetchXml=
                     <fetch>
@@ -136,20 +165,14 @@ Navicon.nav_agreement = (function () {
 
             Xrm.WebApi.retrieveMultipleRecords("nav_credit", fetchXml)
                .then(
-                  function success(result) {
-                     return result.entities;
-                  },
-                  function (error) {
-                     console.log(error.message);
-                  }
-               )
-               .then(
-                  function success(creditIdList) {
-                     var creditFilter = "";
-                     for (var i = 0; i < creditIdList.length; i++) {
-                        creditFilter += `<value>${creditIdList[i].nav_creditid}</value>`;
+                  function success (creditIdList) {
+                     if (creditIdList.entities && creditIdList.entities.length > 0) {
+                        var creditFilter = "";
+                        for (var i = 0; i < creditIdList.entities.length; i++) {
+                           creditFilter += `<value>${creditIdList.entities[i].nav_creditid}</value>`;
+                        }
+                        creditCustomFilter(creditFilter);
                      }
-                     creditCustomFilter(creditFilter);
                   },
                   function (error) {
                      console.log(error.message);
@@ -159,6 +182,12 @@ Navicon.nav_agreement = (function () {
       }
    };
 
+   /**
+    * Фильтрация кредитных программ.
+    * Создание фильтра.
+    *
+    * Задание №2 ч.1 п.4
+    */
    var creditCustomFilter = function (creditFilter) {
       var creditidControl = baseUtils.getControl("nav_creditid");
       if (creditidControl && creditFilter) {
@@ -193,6 +222,15 @@ Navicon.nav_agreement = (function () {
       }
    };
 
+   /**
+    * Показать поля связанные с расчетом кредита.  
+    * Проверять ее срок действия относительно даты договора. 
+    * Срок кредита подставляеться из выбранной кредитной программы
+    * 
+    * Задание №2 ч.1 п.3
+    * Задание №3 ч.2 п.1
+    * Задание №3 ч.2 п.2
+    */
    var creditOnChange = function (context) {
       var formContext = context.getFormContext();
 
@@ -215,77 +253,71 @@ Navicon.nav_agreement = (function () {
       }
    };
 
+   /**
+    * Срок кредита подставляеться из выбранной кредитной программы
+    * 
+    * Задание №3 ч.2 п.2
+    */
    var insertCreditperiod = function () {
       var creditAttr = baseUtils.getAttribute("nav_creditid");
       var creditperiodAttr = baseUtils.getAttribute("nav_creditperiod");
-      if (creditAttr && creditperiodAttr) {
-         if (creditAttr.getValue() != null) {
-            var creditid = creditAttr.getValue()[0].id;
-            creditid = creditid.replace(/[{}]/g, "");
-
-            var promiseCredit = Xrm.WebApi.retrieveRecord(
-               "nav_credit",
-               `${creditid}`,
-               "?$select=nav_creditperiod"
+      var creditid = creditAttr.getValue()[0].id;
+      if (creditAttr && creditperiodAttr && creditid) {
+         Xrm.WebApi.retrieveRecord(
+            "nav_credit",
+            `${creditid}`,
+            "?$select=nav_creditperiod"
+         ).then(
+               function (result) {
+                  if (result.nav_creditperiod) creditperiodAttr.setValue(result.nav_creditperiod);
+               },
+               function (error) {
+                  console.error(error.message);
+               }
             );
-            promiseCredit
-               .then(
-                  function success(result) {
-                     return result.nav_creditperiod;
-                  },
-                  function (error) {
-                     console.error(error.message);
-                  }
-               )
-               .then(
-                  function (creditperiod) {
-                     if (creditperiod) creditperiodAttr.setValue(creditperiod);
-                  },
-                  function (error) {
-                     console.error(error.message);
-                  }
-               );
-         }
       }
    };
 
+   /**
+    * Проверять дату действия относительно даты договора. 
+    * 
+    * Задание №3 ч.2 п.1
+    */
    var dateOnChange = function () {
       var creditAttr = baseUtils.getAttribute("nav_creditid");
       var dateAttr = baseUtils.getAttribute("nav_date");
-      if (creditAttr && dateAttr) {
-         if (creditAttr.getValue() && dateAttr.getValue())
-            checkCreditValidity();
+      if (creditAttr && dateAttr && creditAttr.getValue() && dateAttr.getValue()) {
+         checkCreditValidity();
       }
    };
 
+   /**
+    * Проверять дату действия относительно даты договора. 
+    * 
+    * Задание №3 ч.2 п.1
+    */
    var checkCreditValidity = function () {
       var creditAttr = baseUtils.getAttribute("nav_creditid");
       var dateAttr = baseUtils.getAttribute("nav_date");
       var dateControl = baseUtils.getControl("nav_date");
 
-      if (dateAttr && creditAttr) {
-         var agreementDate = dateAttr.getValue();
-         var creditid = creditAttr.getValue()[0].id;
+      if (!dateAttr && !creditAttr && !dateControl) {
+         return;
       }
+
+      var agreementDate = dateAttr.getValue();
+      var creditid = creditAttr.getValue()[0].id;
       if (agreementDate && creditid) {
-         creditid = creditid.replace(/[{}]/g, "");
-         var promiseCredit = Xrm.WebApi.retrieveRecord(
+         Xrm.WebApi.retrieveRecord(
             "nav_credit",
             `${creditid}`,
             "?$select=nav_dateend"
-         );
-         promiseCredit
-            .then(
-               function success(result) {
-                  return result.nav_dateend;
-               },
-               function (error) {
-                  console.error(error.message);
-               }
-            )
-            .then(
-               function (creditDate) {
-                  if (new Date(creditDate) < new Date(agreementDate)) {
+         ).then(
+               function (result) {
+                  if (!result.nav_dateend) {
+                     return;
+                  }
+                  if (new Date(result.nav_dateend) < new Date(agreementDate)) {
                      dateControl.addNotification({
                         messages: [
                            `должна быть меньше даты окончания кредитной программы.`,
@@ -304,39 +336,46 @@ Navicon.nav_agreement = (function () {
       }
    };
 
+   /**
+    * По завершении ввода, оставлять только цифры и тире. 
+    *
+    * Задание №2 ч.1 п.6
+    */
    var nameOnChange = function () {
       var nameAttr = baseUtils.getAttribute("nav_name");
-      if (nameAttr) {
-         if (nameAttr.getValue() != null) {
-            var newName = replaceName(nameAttr.getValue());
-            nameAttr.setValue(newName);
-         }
+      if (!nameAttr && !nameAttr.getValue()) {
+         return
       }
+      var newName = replaceName(nameAttr.getValue());
+      nameAttr.setValue(newName);
    };
 
+   /**
+    * Задание №2 ч.1 п.6
+    * @return {string} newName, только цифры и тире.
+    */
    var replaceName = function (str) {
       return str.replace(/[^0-9-]/g, "").replace(/^\-*|\-*$/g, "");
    };
 
-   var checkUserRoles = function () {
-      var roles = Xrm.Utility.getGlobalContext().userSettings.roles;
-
-      if (roles === null) return false;
-
-      var hasRole = false;
-      roles.forEach(function (item) {
-         if (
-            item.name.toLowerCase() === "Системный администратор" ||
-            item.id === "e93e2711-f165-ee11-9ae7-00224882b270"
-         ) {
-            hasRole = true;
-         }
-      });
-      return hasRole;
+   /**
+    * Задание №3 ч.2 п.1
+    * @return {boolean} true, если пользователь Cистемный администратор.
+    */
+   var checkUserRoles = function (roles) {
+      if (roles === null && roles.length === 0 ) 
+         return false;
+      return roles.includes("Cистемный администратор");
    };
 
+   /**
+    * Скрытие полей при создании объекта. 
+    * Проверка пользователя
+    * 
+    * Задание №2 ч.1 п.1
+    * Задание №3 ч.2 п.1
+    */
    var visibleSettings = function (context) {
-      console.log("visibleSettings");
       var formContext = context.getFormContext();
 
       var formType = formContext.ui.getFormType();
@@ -367,7 +406,8 @@ Navicon.nav_agreement = (function () {
          }
       } else {
          var formControls = formContext.getControl();
-         if (!checkUserRoles()) {
+         var roles = Xrm.Utility.getGlobalContext().userSettings.roles;
+         if (!checkUserRoles(roles)) {
             formControls.forEach((control) => {
                control.setDisabled(true);
             });
