@@ -14,6 +14,7 @@ Navicon.nav_agreement_ribbon = (function () {
         if (!summaAttr || !initialfeeAttr || !creditamountAttr) {
             return;
         }
+        
         var summaVal = summaAttr.getValue();
         var initialfeeVal = initialfeeAttr.getValue();
         if (summaVal && initialfeeVal)
@@ -28,30 +29,34 @@ Navicon.nav_agreement_ribbon = (function () {
     var setFullcreditamount = function () {
         var creditidAttr = baseUtils.getAttribute("nav_creditid");
         if (creditidAttr) {
-            var creditid = creditidAttr.getValue()[0].id;
-            if (creditid) {
-                var promiseCredit = Xrm.WebApi.retrieveRecord(
-                    "nav_credit",
-                    creditid,
-                    "?$select=nav_percent"
-                );
-                promiseCredit.then(
-                    function success(result) {
-                        if (result.nav_percent)
-                            calculateFullcreditAmount(result.nav_percent);
-                    },
-                    function (error) {
-                        console.error(
-                            "Произошла ошибка при получении данных" +
-                                "из поля: `nav_percent`, " +
-                                "таблицы: `nav_credit`, " +
-                                "функция: `setFullcreditamount` " +
-                                error.message
-                        );
-                    }
+            return;
+        }
+
+        var creditid = creditidAttr.getValue()[0].id;
+        if (creditid) {
+            return;
+        }
+
+        var promiseCredit = Xrm.WebApi.retrieveRecord(
+            "nav_credit",
+            creditid,
+            "?$select=nav_percent"
+        );
+        promiseCredit.then(
+            function success(result) {
+                if (result.nav_percent)
+                    calculateFullcreditAmount(result.nav_percent);
+            },
+            function (error) {
+                console.error(
+                    "Произошла ошибка при получении данных" +
+                        "из поля: `nav_percent`, " +
+                        "таблицы: `nav_credit`, " +
+                        "функция: `setFullcreditamount` " +
+                        error.message
                 );
             }
-        }
+        );
     };
 
     /**

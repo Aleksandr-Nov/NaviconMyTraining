@@ -12,9 +12,10 @@ Navicon.nav_credit = (function () {
         var datestartAttr = baseUtils.getAttribute("nav_datestart");
         var dateendAttr = baseUtils.getAttribute("nav_dateend");
         var dateendControl = baseUtils.getControl("nav_dateend");
-        if (!datestartAttr || dateendAttr || !dateendControl) {
+        if (!datestartAttr || !dateendAttr || !dateendControl) {
             return;
         }
+        
         var startDate = datestartAttr.getValue();
         var endDate = dateendAttr.getValue();
 
@@ -56,9 +57,8 @@ Navicon.nav_credit = (function () {
         } 
         else if (endmonth == startmonth) {
             return endday > startday 
-        } else {
-            return false;
-        }
+        } 
+        return false;     
     };
 
     var onChangeStart = function () {

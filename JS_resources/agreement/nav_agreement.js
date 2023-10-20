@@ -24,6 +24,7 @@ Navicon.nav_agreement = (function () {
         if (!autoAttr || !autoAttr.getValue()) {
             return;
         }
+        
         setFieldSumma();
 
         var contactAttr = baseUtils.getAttribute("nav_contact");
@@ -32,6 +33,7 @@ Navicon.nav_agreement = (function () {
         if (!contactAttr || !creditidAttr || !creditidControl) {
             return;
         }
+
         if (contactAttr.getValue()) {
             creditidControl.setVisible(true);
             creditPreSearch();
@@ -53,10 +55,12 @@ Navicon.nav_agreement = (function () {
         if (!autoAttr || !summaAttr) {
             return;
         }
+
         var autoid = autoAttr.getValue()[0].id;
         if (!autoid) {
             return;
         }
+
         Xrm.WebApi.retrieveRecord(
             "nav_auto",
             autoid,
@@ -92,6 +96,7 @@ Navicon.nav_agreement = (function () {
         if (!summaAttr || !autoid) {
             return;
         }
+
         Xrm.WebApi.retrieveRecord(
             "nav_auto",
             autoid,
@@ -125,6 +130,7 @@ Navicon.nav_agreement = (function () {
         if (!summaAttr || !autoid) {
             return;
         }
+
         var fetchXml = `?fetchXml=
                         <fetch>
                             <entity name="nav_auto">
@@ -168,10 +174,12 @@ Navicon.nav_agreement = (function () {
         if (!autoAttr || !creditidControl) {
             return;
         }
+
         var autoId = autoAttr.getValue()[0].id;
         if (!autoId) {
             return;
         }
+
         var fetchXml =
             `?fetchXml=
                 <fetch>
@@ -220,6 +228,7 @@ Navicon.nav_agreement = (function () {
         if (!creditidControl || !creditFilter) {
             return;
         }
+
         var fetchXml =
                 `<fetch>
                     <entity name="nav_credit">
@@ -268,6 +277,7 @@ Navicon.nav_agreement = (function () {
         if (!creditAttr) {
             return;
         }
+
         creditPreSearch();
 
         if (creditAttr.getValue()) {
@@ -275,9 +285,11 @@ Navicon.nav_agreement = (function () {
             if (creditTab) {
                 creditTab.setVisible(true);
             }
+
             if (summaControl){
                 summaControl.setVisible(true);
             }
+
             if (dateAttr) {
                 if (dateAttr.getValue()) {
                     checkCreditValidity();
@@ -289,6 +301,7 @@ Navicon.nav_agreement = (function () {
             if (creditTab) {
                 creditTab.setVisible(false);
             }
+
             if (summaControl){
                 summaControl.setVisible(false);
             }
@@ -306,10 +319,12 @@ Navicon.nav_agreement = (function () {
         if (!creditAttr || !creditperiodAttr) {
             return;
         }
+
         var creditid = creditAttr.getValue()[0].id;
         if (!creditid) {
             return;
         }
+
         Xrm.WebApi.retrieveRecord(
             "nav_credit",
             creditid,
@@ -363,6 +378,7 @@ Navicon.nav_agreement = (function () {
         if (!agreementDate || !creditid) {
             return;
         }
+
         Xrm.WebApi.retrieveRecord(
             "nav_credit",
             creditid,
@@ -372,7 +388,8 @@ Navicon.nav_agreement = (function () {
                 if (!result.nav_dateend) {
                     return;
                 }
-                if (result.nav_dateend < agreementDate) {
+
+                if (new Date(result.nav_dateend) < new Date(agreementDate)) {
                     dateControl.addNotification({
                         messages: [
                             `должна быть меньше даты окончания кредитной программы.`,
@@ -406,6 +423,7 @@ Navicon.nav_agreement = (function () {
         if (!nameAttr || !nameAttr.getValue()) {
             return;
         }
+
         var newName = replaceName(nameAttr.getValue());
         nameAttr.setValue(newName);
     };
@@ -423,7 +441,12 @@ Navicon.nav_agreement = (function () {
      * @return {boolean} true, если пользователь Cистемный администратор.
      */
     var checkUserRoles = function (roles) {
-        return (roles === null || roles.length === 0 || !roles.includes("Cистемный администратор"));
+        roles.forEach(x => {
+            if (x.name == "Cистемный администратор") {
+                return false;
+            }
+        });
+        return true; 
     };
 
     /**
@@ -463,11 +486,13 @@ Navicon.nav_agreement = (function () {
                 owneridControl.setVisible(false);
             }
         } else {
+            creditPreSearch();
             var formControls = formContext.getControl();
             var roles = Xrm.Utility.getGlobalContext().userSettings.roles;
             if (!formControls || !roles || roles.length == 0) {
                 return;
             }
+
             if (!checkUserRoles(roles)) {
                 formControls.forEach((control) => {
                     control.setDisabled(true);

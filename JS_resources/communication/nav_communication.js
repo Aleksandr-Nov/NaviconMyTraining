@@ -59,6 +59,11 @@ Navicon.nav_communication = (function () {
         }
     };
 
+    /**
+     *	Скрыть поля до выбора поля "Тип".
+     *
+     * Задание №2 ч.1 п.7
+     */
     var showType = function (context) {
         var formContext = context.getFormContext();
 
