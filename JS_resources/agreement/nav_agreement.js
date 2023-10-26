@@ -441,6 +441,9 @@ Navicon.nav_agreement = (function () {
      * @return {boolean} true, если пользователь Cистемный администратор.
      */
     var checkUserRoles = function (roles) {
+        if (roles == null || roles.length == 0) {
+            return true; 
+        }
         roles.forEach(x => {
             if (x.name == "Cистемный администратор") {
                 return false;

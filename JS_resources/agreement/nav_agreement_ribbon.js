@@ -41,8 +41,7 @@ Navicon.nav_agreement_ribbon = (function () {
             "nav_credit",
             creditid,
             "?$select=nav_percent"
-        );
-        promiseCredit.then(
+        ).then(
             function success(result) {
                 if (result.nav_percent)
                     calculateFullcreditAmount(result.nav_percent);
@@ -73,7 +72,7 @@ Navicon.nav_agreement_ribbon = (function () {
         if (!fullcreditamountAttr || !creditperiodAttr || !creditamountAttr) {
             return;
         }
-        
+
         var creditperiodVal = creditperiodAttr.getValue();
         var creditamountVal = creditamountAttr.getValue();
         if (creditperiodVal && creditamountVal) {
