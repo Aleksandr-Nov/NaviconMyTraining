@@ -37,7 +37,7 @@ Navicon.nav_agreement_ribbon = (function () {
             return;
         }
 
-        var promiseCredit = Xrm.WebApi.retrieveRecord(
+        Xrm.WebApi.retrieveRecord(
             "nav_credit",
             creditid,
             "?$select=nav_percent"
@@ -73,6 +73,7 @@ Navicon.nav_agreement_ribbon = (function () {
         if (!fullcreditamountAttr || !creditperiodAttr || !creditamountAttr) {
             return;
         }
+        
         var creditperiodVal = creditperiodAttr.getValue();
         var creditamountVal = creditamountAttr.getValue();
         if (creditperiodVal && creditamountVal) {

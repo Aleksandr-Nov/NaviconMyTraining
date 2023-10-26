@@ -29,6 +29,7 @@ Navicon.nav_communication = (function () {
         if (!phoneControl || !emailControl || !typeAttr) {
             return;
         }
+        
         var typeValue = typeAttr.getValue();
         if (typeValue) {
             switch (typeValue) {

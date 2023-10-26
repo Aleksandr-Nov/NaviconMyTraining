@@ -48,16 +48,22 @@ Navicon.nav_credit = (function () {
         var endmonth = endDate.getMonth();
         var endyear = endDate.getFullYear();
 
-        if (endyear - startyear > minPeriodForCredit) return true;
+        if (endyear - startyear > minPeriodForCredit) {
+            return true;
+        }
 
-        if (endyear <= startyear) return false;
+        if (endyear <= startyear) {
+            return false;
+        }
 
         if (endmonth > startmonth) {
             return true;
         } 
-        else if (endmonth == startmonth) {
+
+        if (endmonth == startmonth) {
             return endday > startday 
         } 
+        
         return false;     
     };
 
