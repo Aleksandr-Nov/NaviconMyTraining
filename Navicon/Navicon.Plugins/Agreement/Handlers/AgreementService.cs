@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using Navicon.Repository.Entities;
 using System;
 using System.Collections.Generic;
@@ -48,11 +49,13 @@ namespace Navicon.Plugins.Agreement.Handlers
                 throw new ArgumentNullException(nameof(contactId), "ContactId not found");
             }
 
-            using(CrmServiceContext dbContext = new CrmServiceContext(_service))
-            {
-                var agreement = dbContext.nav_agreementSet.FirstOrDefault(x => x.nav_contact.Id == contactId);
-                return agreement == null;
-            }
+            QueryExpression query = new QueryExpression(nav_agreement.EntityLogicalName);
+            query.NoLock = true;
+            query.TopCount = 1;
+            query.Criteria.AddCondition(nav_agreement.Fields.nav_contact, ConditionOperator.Equal, contactId);
+            var agreement = _service.RetrieveMultiple(query);
+            
+            return agreement.Entities.Count() == 0;
         }
 
         /// <summary>
@@ -72,18 +75,17 @@ namespace Navicon.Plugins.Agreement.Handlers
                 throw new ArgumentNullException(nameof(agreementDate), "AgreementDate not found");
             }
 
-            using (CrmServiceContext dbContext = new CrmServiceContext(_service))
+            var contact = _service.Retrieve(Contact.EntityLogicalName, contactId, new ColumnSet(false));
+            if (contact == null)
             {
-                var contact = dbContext.ContactSet.FirstOrDefault(x => x.Id == contactId); 
-                if (contact == null) 
-                {
-                    throw new ArgumentNullException(nameof(contact), "Contact not found");
-                }
-                
-                contact.nav_date = agreementDate;    
-                dbContext.UpdateObject(contact);
-                dbContext.SaveChanges();
+                throw new ArgumentNullException(nameof(contact), "Contact not found");
             }
+
+            Contact contactToUpdate = new Contact();
+            contactToUpdate.Id = contact.Id;
+            contactToUpdate.nav_date = agreementDate;
+
+            _service.Update(contactToUpdate);
         }
     }
 }
