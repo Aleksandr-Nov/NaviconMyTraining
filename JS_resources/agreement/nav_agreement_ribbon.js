@@ -10,6 +10,7 @@ Navicon.nav_agreement_ribbon = (function () {
         var creditamountAttr = baseUtils.getAttribute("nav_creditamount");
         var summaAttr = baseUtils.getAttribute("nav_summa");
         var initialfeeAttr = baseUtils.getAttribute("nav_initialfee");
+        var initialfeeControl = baseUtils.getControl("nav_initialfee");
 
         if (!summaAttr || !initialfeeAttr || !creditamountAttr) {
             return;
@@ -17,6 +18,18 @@ Navicon.nav_agreement_ribbon = (function () {
         
         var summaVal = summaAttr.getValue();
         var initialfeeVal = initialfeeAttr.getValue();
+        if (!initialfeeVal) {
+            initialfeeControl.addNotification({
+                messages: [
+                    `Для расчета кредита пожалуйста заполните поле.`,
+                ],
+                notificationLevel: "RECOMMENDATION",
+                uniqueId: "initialfee_id",
+            });
+        } else {
+            initialfeeControl.clearNotification("initialfee_id");
+        }
+
         if (summaVal && initialfeeVal)
             creditamountAttr.setValue(summaVal - initialfeeVal);
     };
@@ -28,12 +41,17 @@ Navicon.nav_agreement_ribbon = (function () {
      */
     var setFullcreditamount = function () {
         var creditidAttr = baseUtils.getAttribute("nav_creditid");
-        if (creditidAttr) {
+        if (!creditidAttr) {
+            return;
+        }
+
+        var creditval = creditidAttr.getValue();
+        if (!creditval) {
             return;
         }
 
         var creditid = creditidAttr.getValue()[0].id;
-        if (creditid) {
+        if (!creditid) {
             return;
         }
 

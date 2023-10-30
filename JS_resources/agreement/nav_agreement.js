@@ -203,6 +203,7 @@ Navicon.nav_agreement = (function () {
                     for (var i = 0; i < creditIdList.entities.length; i++) {
                         creditFilter += `<value>${creditIdList.entities[i].nav_creditid}</value>`;
                     }
+                    checkCurrentCreditId(Array.from(creditIdList.entities, (x) => x.nav_creditid));
                     creditCustomFilter(creditFilter);
                 }
             },
@@ -258,6 +259,27 @@ Navicon.nav_agreement = (function () {
             true
         );
     };
+
+    var checkCurrentCreditId = function (creditIdArr) {
+        var creditidAttr = baseUtils.getAttribute("nav_creditid");
+        if (!creditidAttr) {
+            return;
+        }
+   
+        if (!creditidAttr.getValue()) {
+            return;
+        }
+
+        var curentCreditId = creditidAttr.getValue()[0].id;
+        if (!curentCreditId) {
+            return;
+        }
+
+        curentCreditId = curentCreditId.toString().toLowerCase().replace(/[{}]/g, "");
+        if (!creditIdArr.includes(curentCreditId)) {
+            creditidAttr.setValue(null);
+        }
+    }
 
     /**
      * Показать поля связанные с расчетом кредита.
