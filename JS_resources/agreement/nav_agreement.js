@@ -24,7 +24,7 @@ Navicon.nav_agreement = (function () {
         if (!autoAttr || !autoAttr.getValue()) {
             return;
         }
-        
+
         setFieldSumma();
 
         var contactAttr = baseUtils.getAttribute("nav_contact");
@@ -76,10 +76,10 @@ Navicon.nav_agreement = (function () {
             function (error) {
                 console.error(
                     "Произошла ошибка при получении данных " +
-                        "из поля: `nav_used`, " +
-                        "таблицы: `nav_auto`, " +
-                        "функция: `setFieldSumma` " +
-                        error.message
+                    "из поля: `nav_used`, " +
+                    "таблицы: `nav_auto`, " +
+                    "функция: `setFieldSumma` " +
+                    error.message
                 );
             }
         );
@@ -110,10 +110,10 @@ Navicon.nav_agreement = (function () {
             function (error) {
                 console.error(
                     "Произошла ошибка при получении данных " +
-                        "из поля: `nav_amount`, " +
-                        "таблицы: `nav_auto`, " +
-                        "функция: `usedSetSumma` " +
-                        error.message
+                    "из поля: `nav_amount`, " +
+                    "таблицы: `nav_auto`, " +
+                    "функция: `usedSetSumma` " +
+                    error.message
                 );
             }
         );
@@ -154,9 +154,9 @@ Navicon.nav_agreement = (function () {
             function (error) {
                 console.error(
                     "Произошла ошибка при получении данных " +
-                        "таблицы: `nav_auto`, " +
-                        "функция: `unusedSetSumma` " +
-                        error.message
+                    "таблицы: `nav_auto`, " +
+                    "функция: `unusedSetSumma` " +
+                    error.message
                 );
             }
         );
@@ -189,8 +189,8 @@ Navicon.nav_agreement = (function () {
                         <link-entity name="nav_nav_credit_nav_auto" from="nav_creditid" to="nav_creditid" intersect="true">
                             <filter>
                                 <condition attribute="nav_autoid" operator="eq" value="` +
-                                    autoId +
-                                `" uitype="nav_nav_credit_nav_auto" />
+            autoId +
+            `" uitype="nav_nav_credit_nav_auto" />
                             </filter>
                         </link-entity>
                     </entity>
@@ -203,15 +203,16 @@ Navicon.nav_agreement = (function () {
                     for (var i = 0; i < creditIdList.entities.length; i++) {
                         creditFilter += `<value>${creditIdList.entities[i].nav_creditid}</value>`;
                     }
+                    checkCurrentCreditId(Array.from(creditIdList.entities, (x) => x.nav_creditid));
                     creditCustomFilter(creditFilter);
                 }
             },
             function (error) {
                 console.error(
                     "Произошла ошибка при получении данных " +
-                        "таблицы: `nav_credit`, " +
-                        "функция: `creditPreSearch` " +
-                        error.message
+                    "таблицы: `nav_credit`, " +
+                    "функция: `creditPreSearch` " +
+                    error.message
                 );
             }
         );
@@ -230,23 +231,23 @@ Navicon.nav_agreement = (function () {
         }
 
         var fetchXml =
-                `<fetch>
+            `<fetch>
                     <entity name="nav_credit">
                         <attribute name="nav_name" />
                         <attribute name="nav_creditid" />
                         <filter>
                             <condition attribute="nav_creditid" operator="in">` +
-                                creditFilter +
-                            `</condition>
+            creditFilter +
+            `</condition>
                         </filter>
                     </entity>
                 </fetch>`;
 
         var layoutXml =
             "<grid name='resultset' object='1' jump='productid' select='1' icon='1' preview='1'>" +
-                "<row name='result' id='nav_creditid'>" +
-                    "<cell name='nav_name' width='150' />" +
-                "</row>" +
+            "<row name='result' id='nav_creditid'>" +
+            "<cell name='nav_name' width='150' />" +
+            "</row>" +
             "</grid>";
 
         creditidControl.addCustomView(
@@ -258,6 +259,27 @@ Navicon.nav_agreement = (function () {
             true
         );
     };
+
+    var checkCurrentCreditId = function (creditIdArr) {
+        var creditidAttr = baseUtils.getAttribute("nav_creditid");
+        if (!creditidAttr) {
+            return;
+        }
+
+        if (!creditidAttr.getValue()) {
+            return;
+        }
+
+        var curentCreditId = creditidAttr.getValue()[0].id;
+        if (!curentCreditId) {
+            return;
+        }
+
+        curentCreditId = curentCreditId.toString().toLowerCase().replace(/[{}]/g, "");
+        if (!creditIdArr.includes(curentCreditId)) {
+            creditidAttr.setValue(null);
+        }
+    }
 
     /**
      * Показать поля связанные с расчетом кредита.
@@ -286,14 +308,14 @@ Navicon.nav_agreement = (function () {
                 creditTab.setVisible(true);
             }
 
-            if (summaControl){
+            if (summaControl) {
                 summaControl.setVisible(true);
             }
 
             if (dateAttr) {
                 if (dateAttr.getValue()) {
                     checkCreditValidity();
-                }        
+                }
             }
             insertCreditperiod();
         } else {
@@ -302,7 +324,7 @@ Navicon.nav_agreement = (function () {
                 creditTab.setVisible(false);
             }
 
-            if (summaControl){
+            if (summaControl) {
                 summaControl.setVisible(false);
             }
         }
@@ -337,10 +359,10 @@ Navicon.nav_agreement = (function () {
             function (error) {
                 console.error(
                     "Произошла ошибка при получении данных" +
-                        "из поля: `nav_creditperiod`, " +
-                        "таблицы: `nav_credit`, " +
-                        "функция: `insertCreditperiod` " +
-                        error.message
+                    "из поля: `nav_creditperiod`, " +
+                    "таблицы: `nav_credit`, " +
+                    "функция: `insertCreditperiod` " +
+                    error.message
                 );
             }
         );
@@ -404,10 +426,10 @@ Navicon.nav_agreement = (function () {
             function (error) {
                 console.error(
                     "Произошла ошибка при получении данных" +
-                        "из поля: `nav_dateend`, " +
-                        "таблицы: `nav_credit`, " +
-                        "функция: `checkCreditValidity` " +
-                        error.message
+                    "из поля: `nav_dateend`, " +
+                    "таблицы: `nav_credit`, " +
+                    "функция: `checkCreditValidity` " +
+                    error.message
                 );
             }
         );

@@ -23,7 +23,7 @@ Navicon.nav_agreement_ribbon = (function () {
         var initialfeeVal = initialfeeAttr.getValue();
         if (!initialfeeVal) {
             alert("Заполните поле [Первоначальный взнос]")
-        } 
+        }
 
         if (summaVal && initialfeeVal)
             creditamountAttr.setValue(summaVal - initialfeeVal);
