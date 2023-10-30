@@ -1,6 +1,0 @@
-C:\Users\sasha\OneDrive\Документы\Works\Traning\NaviconMyTraining\Navicon\Navicon.Resource\obj\Debug\Navicon.Resources.csproj.AssemblyReference.cache
-C:\Users\sasha\OneDrive\Документы\Works\Traning\NaviconMyTraining\Navicon\Navicon.Resource\obj\Debug\Navicon.Resources.csproj.SuggestedBindingRedirects.cache
-C:\Users\sasha\OneDrive\Документы\Works\Traning\NaviconMyTraining\Navicon\Navicon.Resource\obj\Debug\Navicon.Resources.csproj.CoreCompileInputs.cache
-C:\Users\sasha\OneDrive\Документы\Works\Traning\NaviconMyTraining\1\Navicon\Navicon.Resource\obj\Debug\Navicon.Resources.csproj.AssemblyReference.cache
-C:\Users\sasha\OneDrive\Документы\Works\Traning\NaviconMyTraining\1\Navicon\Navicon.Resource\obj\Debug\Navicon.Resources.csproj.SuggestedBindingRedirects.cache
-C:\Users\sasha\OneDrive\Документы\Works\Traning\NaviconMyTraining\1\Navicon\Navicon.Resource\obj\Debug\Navicon.Resources.csproj.CoreCompileInputs.cache

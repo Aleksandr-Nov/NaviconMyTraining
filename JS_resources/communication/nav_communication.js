@@ -29,31 +29,34 @@ Navicon.nav_communication = (function () {
         if (!phoneControl || !emailControl || !typeAttr) {
             return;
         }
+        
         var typeValue = typeAttr.getValue();
-        switch (typeValue) {
-            case communicationType.phone:
-                if (emailAttr) {
-                    emailControl.setVisible(false);
-                    emailAttr.setValue(null);
-                    phoneControl.setVisible(true);
-                }
-                break;
+        if (typeValue) {
+            switch (typeValue) {
+                case communicationType.phone:
+                    if (emailAttr) {
+                        emailControl.setVisible(false);
+                        emailAttr.setValue(null);
+                        phoneControl.setVisible(true);
+                    }
+                    break;
 
-            case communicationType.email:
-                if (phoneAttr) {
-                    phoneControl.setVisible(false);
-                    phoneAttr.setValue(null);
-                    emailControl.setVisible(true);
-                }
-                break;
+                case communicationType.email:
+                    if (phoneAttr) {
+                        phoneControl.setVisible(false);
+                        phoneAttr.setValue(null);
+                        emailControl.setVisible(true);
+                    }
+                    break;
 
-            default:
-                if (emailAttr && phoneAttr) {
-                    emailAttr.setValue(null);
-                    phoneAttr.setValue(null);
-                    phoneControl.setVisible(false);
-                    emailControl.setVisible(false);
-                }
+                default:
+                    if (emailAttr && phoneAttr) {
+                        emailAttr.setValue(null);
+                        phoneAttr.setValue(null);
+                        phoneControl.setVisible(false);
+                        emailControl.setVisible(false);
+                    }
+            }
         }
     };
 

@@ -10,25 +10,20 @@ Navicon.nav_agreement_ribbon = (function () {
         var creditamountAttr = baseUtils.getAttribute("nav_creditamount");
         var summaAttr = baseUtils.getAttribute("nav_summa");
         var initialfeeAttr = baseUtils.getAttribute("nav_initialfee");
-        var initialfeeControl = baseUtils.getControl("nav_initialfee");
 
         if (!summaAttr || !initialfeeAttr || !creditamountAttr) {
             return;
         }
-        
+
         var summaVal = summaAttr.getValue();
+        if (!summaVal) {
+            alert("Заполните поле [Сумма]")
+        }
+
         var initialfeeVal = initialfeeAttr.getValue();
         if (!initialfeeVal) {
-            initialfeeControl.addNotification({
-                messages: [
-                    `Для расчета кредита пожалуйста заполните поле.`,
-                ],
-                notificationLevel: "RECOMMENDATION",
-                uniqueId: "initialfee_id",
-            });
-        } else {
-            initialfeeControl.clearNotification("initialfee_id");
-        }
+            alert("Заполните поле [Первоначальный взнос]")
+        } 
 
         if (summaVal && initialfeeVal)
             creditamountAttr.setValue(summaVal - initialfeeVal);
@@ -47,6 +42,7 @@ Navicon.nav_agreement_ribbon = (function () {
 
         var creditval = creditidAttr.getValue();
         if (!creditval) {
+            alert("Заполните поле [Кредитная программа]")
             return;
         }
 
@@ -67,10 +63,10 @@ Navicon.nav_agreement_ribbon = (function () {
             function (error) {
                 console.error(
                     "Произошла ошибка при получении данных" +
-                        "из поля: `nav_percent`, " +
-                        "таблицы: `nav_credit`, " +
-                        "функция: `setFullcreditamount` " +
-                        error.message
+                    "из поля: `nav_percent`, " +
+                    "таблицы: `nav_credit`, " +
+                    "функция: `setFullcreditamount` " +
+                    error.message
                 );
             }
         );
@@ -92,6 +88,11 @@ Navicon.nav_agreement_ribbon = (function () {
         }
 
         var creditperiodVal = creditperiodAttr.getValue();
+        if (!creditperiodVal) {
+            alert("Заполните поле [Срок кредита (лет)]")
+            return;
+        }
+
         var creditamountVal = creditamountAttr.getValue();
         if (creditperiodVal && creditamountVal) {
             var fullcreditamountVal =

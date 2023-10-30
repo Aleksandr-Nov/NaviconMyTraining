@@ -203,7 +203,6 @@ Navicon.nav_agreement = (function () {
                     for (var i = 0; i < creditIdList.entities.length; i++) {
                         creditFilter += `<value>${creditIdList.entities[i].nav_creditid}</value>`;
                     }
-                    checkCurrentCreditId(Array.from(creditIdList.entities, (x) => x.nav_creditid));
                     creditCustomFilter(creditFilter);
                 }
             },
@@ -259,27 +258,6 @@ Navicon.nav_agreement = (function () {
             true
         );
     };
-
-    var checkCurrentCreditId = function (creditIdArr) {
-        var creditidAttr = baseUtils.getAttribute("nav_creditid");
-        if (!creditidAttr) {
-            return;
-        }
-   
-        if (!creditidAttr.getValue()) {
-            return;
-        }
-
-        var curentCreditId = creditidAttr.getValue()[0].id;
-        if (!curentCreditId) {
-            return;
-        }
-
-        curentCreditId = curentCreditId.toString().toLowerCase().replace(/[{}]/g, "");
-        if (!creditIdArr.includes(curentCreditId)) {
-            creditidAttr.setValue(null);
-        }
-    }
 
     /**
      * Показать поля связанные с расчетом кредита.
@@ -459,24 +437,7 @@ Navicon.nav_agreement = (function () {
     };
 
     /**
-     * Задание №3 ч.2 п.1
-     * @return {boolean} true, если пользователь Cистемный администратор.
-     */
-    var checkUserRoles = function (roles) {
-        if (roles == null || roles.length == 0) {
-            return true; 
-        }
-        roles.forEach(x => {
-            if (x.name == "Cистемный администратор") {
-                return false;
-            }
-        });
-        return true; 
-    };
-
-    /**
      * Скрытие полей при создании объекта.
-     * Проверка пользователя
      *
      * Задание №2 ч.1 п.1
      * Задание №3 ч.2 п.1
@@ -512,17 +473,6 @@ Navicon.nav_agreement = (function () {
             }
         } else {
             creditPreSearch();
-            var formControls = formContext.getControl();
-            var roles = Xrm.Utility.getGlobalContext().userSettings.roles;
-            if (!formControls || !roles || roles.length == 0) {
-                return;
-            }
-
-            if (!checkUserRoles(roles)) {
-                formControls.forEach((control) => {
-                    control.setDisabled(true);
-                });
-            }
         }
     };
 
