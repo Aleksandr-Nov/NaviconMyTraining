@@ -19,8 +19,7 @@ namespace Navicon.Plugins.Invoices
                 if (target.nav_fact == true && target.nav_amount != null)
                 {
                     invoiceService.RecalculateTotalAmount(target);
-                }
-                
+                }               
             }
             catch (Exception exc)
             {

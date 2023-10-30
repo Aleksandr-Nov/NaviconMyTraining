@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using Navicon.Repository.Entities;
 using System;
 using System.Collections.Generic;
@@ -54,19 +55,19 @@ namespace Navicon.Plugins.Сommunication.Handlers
                 throw new ArgumentNullException(nameof(target), "Заполните поле Контакт");
             }
 
-            using (CrmServiceContext dbContext = new CrmServiceContext(_service))
-            {
-                var Communication = dbContext.nav_communicationSet
-                    .Where(x => x.nav_contactid == target.nav_contactid
-                        && x.nav_type == target.nav_type
-                        && x.nav_main == true).ToList(); 
+            QueryExpression query = new QueryExpression(nav_communication.EntityLogicalName);
+            query.NoLock = true;
+            query.TopCount = 1;
+            query.Criteria.AddCondition(nav_communication.Fields.nav_contactid, ConditionOperator.Equal, target.nav_contactid.Id);
+            query.Criteria.AddCondition(nav_communication.Fields.nav_type, ConditionOperator.Equal, (int)target.nav_type.Value);
+            query.Criteria.AddCondition(nav_communication.Fields.nav_main, ConditionOperator.Equal, true);
+            var Communication = _service.RetrieveMultiple(query);
 
-                if(Communication.Count > 0)
-                {
-                    throw new Exception("Для этого контакта уже существует оснвное средство связи c типом: " +
-                        Enum.GetName(typeof(nav_communication_type), target.nav_type));
-                }
-            }
+            if (Communication.Entities.Count() > 0)
+            {
+                throw new Exception("Для этого контакта уже существует оснвное средство связи c типом: " +
+                    Enum.GetName(typeof(nav_communication_type), target.nav_type));
+            }          
         }
     }
 }
