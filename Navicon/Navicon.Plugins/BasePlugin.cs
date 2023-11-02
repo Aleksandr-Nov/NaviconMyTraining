@@ -10,7 +10,7 @@ namespace Navicon.Plugins
             return (ITracingService)serviceProvider.GetService(typeof(ITracingService));
         }
 
-        public T GetTarget<T>(IServiceProvider serviceProvider) where T : Microsoft.Xrm.Sdk.Entity
+        public T GetTarget<T>(IServiceProvider serviceProvider) where T : Entity
         {
             var pluginContext = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
             if (pluginContext.InputParameters.Contains("Target"))

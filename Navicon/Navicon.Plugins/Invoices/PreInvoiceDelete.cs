@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Navicon.Plugins.Invoices.Handlers;
-using Navicon.Repository.Entities;
 using System;
 
 namespace Navicon.Plugins.Invoices
@@ -12,7 +11,8 @@ namespace Navicon.Plugins.Invoices
             var traceService = GetTrace(serviceProvider);
             try
             {
-                InvoiceService invoiceService = new InvoiceService(GetService(serviceProvider));
+                var service = GetService(serviceProvider);
+                InvoiceService invoiceService = new InvoiceService(service);
                 invoiceService.WithdrawTotalAmount(GetContext(serviceProvider));              
             }
             catch (Exception exc)

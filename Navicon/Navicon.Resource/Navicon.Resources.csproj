@@ -40,6 +40,7 @@
     <Content Include="JS_resources\brand\nav_brand.js" />
     <Content Include="JS_resources\communication\nav_communication.js" />
     <Content Include="JS_resources\credit\nav_credit.js" />
+    <Content Include="JS_resources\model\nav_model.js" />
     <Content Include="JS_resources\utilit\baseUtils.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

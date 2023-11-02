@@ -2,10 +2,6 @@
 using Microsoft.Xrm.Sdk.Query;
 using Navicon.Repository.Entities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Navicon.Plugins.Agreement.Handlers
 {
@@ -22,15 +18,19 @@ namespace Navicon.Plugins.Agreement.Handlers
         /// Автоматическое заполнение поля [Дата первого договора] на объекте Контакт.
         /// Задание 5 п.2
         /// </summary>
-        /// <param name="target">type nav_agreement</param>
         public void AutoSetDate(nav_agreement target)
         {
             if (target == null)
             {
-                throw new ArgumentNullException(nameof(target), "Target not found");
+                throw new ArgumentNullException(nameof(target), "Обьект target отсутствует");
             }
 
-            if(IsFirstAgreement(target.nav_contact.Id))
+            if (target.nav_contact == null)
+            {
+                throw new ArgumentNullException(nameof(target.nav_contact), "Обьект target.nav_contact отсутствует");
+            }
+
+            if (IsFirstAgreement(target.nav_contact.Id))
             {
                 SetFirstDateAgreement(target.nav_contact.Id, target.nav_date);
             }
@@ -40,50 +40,57 @@ namespace Navicon.Plugins.Agreement.Handlers
         /// <summary>
         /// Проверка существует ли у клиента договор.
         /// </summary>
-        /// <param name="contactId">type Guid</param>
-        /// <returns>bool</returns>
         public bool IsFirstAgreement(Guid contactId)
         {
-            if (contactId == Guid.Empty)
+            if (contactId == null || contactId == Guid.Empty)
             {
-                throw new ArgumentNullException(nameof(contactId), "ContactId not found");
+                throw new ArgumentNullException(nameof(contactId), "Обьект contactId отсутствует");
             }
 
-            QueryExpression query = new QueryExpression(nav_agreement.EntityLogicalName);
-            query.NoLock = true;
-            query.TopCount = 1;
-            query.Criteria.AddCondition(nav_agreement.Fields.nav_contact, ConditionOperator.Equal, contactId);
-            var agreement = _service.RetrieveMultiple(query);
+            var query = new QueryExpression(nav_agreement.EntityLogicalName)
+            {
+                NoLock = true,
+                TopCount = 1,
+                Criteria =
+                {
+                    Conditions =
+                    {
+                        new ConditionExpression(nav_agreement.Fields.nav_contact, ConditionOperator.Equal, contactId)
+                    }
+                }               
+            };
+
+            var agreements = _service.RetrieveMultiple(query).Entities;
             
-            return agreement.Entities.Count() == 0;
+            return agreements.Count == 0;
         }
 
         /// <summary>
         /// Установка даты на обьекте Контакт.
         /// </summary>
-        /// <param name="contactId">type Guid</param>
-        /// <param name="agreementDate">type DateTime?</param>
         public void SetFirstDateAgreement(Guid contactId, DateTime? agreementDate)
         {
             if (contactId == Guid.Empty)
             {
-                throw new ArgumentNullException(nameof(contactId), "ContactId not found");
+                throw new ArgumentNullException(nameof(contactId), "Обьект contactId отсутствует");
             }
 
             if (agreementDate == null)
             {
-                throw new ArgumentNullException(nameof(agreementDate), "AgreementDate not found");
+                throw new ArgumentNullException(nameof(agreementDate), "Обьект agreementDate отсутствует");
             }
 
             var contact = _service.Retrieve(Contact.EntityLogicalName, contactId, new ColumnSet(false));
             if (contact == null)
             {
-                throw new ArgumentNullException(nameof(contact), "Contact not found");
+                return;
             }
 
-            Contact contactToUpdate = new Contact();
-            contactToUpdate.Id = contact.Id;
-            contactToUpdate.nav_date = agreementDate;
+            var contactToUpdate = new Contact()
+            {
+                Id = contact.Id,
+                nav_date = agreementDate
+            };
 
             _service.Update(contactToUpdate);
         }

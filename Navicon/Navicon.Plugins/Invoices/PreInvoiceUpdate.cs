@@ -13,7 +13,8 @@ namespace Navicon.Plugins.Invoices
             try
             {
                 var target = GetTarget<nav_invoice>(serviceProvider);
-                InvoiceService invoiceService = new InvoiceService(GetService(serviceProvider));
+                var service = GetService(serviceProvider);
+                InvoiceService invoiceService = new InvoiceService(service);
                 if (target.nav_fact == true)
                 {
                     invoiceService.RecalculateTotalAmount(target, true);

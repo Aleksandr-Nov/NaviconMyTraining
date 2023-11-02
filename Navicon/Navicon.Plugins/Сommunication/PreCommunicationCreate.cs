@@ -12,7 +12,8 @@ namespace Navicon.Plugins.Сommunication
             var traceService = GetTrace(serviceProvider);
             try
             {
-                CommunicationService CommunicationService = new CommunicationService(GetService(serviceProvider));
+                var service = GetService(serviceProvider);
+                CommunicationService CommunicationService = new CommunicationService(service);
                 CommunicationService.CheckCommunication(GetTarget<nav_communication>(serviceProvider));
             }
             catch (Exception exc)

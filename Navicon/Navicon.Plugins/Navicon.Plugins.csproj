@@ -116,47 +116,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="bin\coretools\CrmSvcUtil.exe.config" />
-    <None Include="bin\coretools\LicenseTerms.docx" />
-    <None Include="bin\coretools\pacTelemetryUpload.exe.config" />
-    <None Include="bin\coretools\SolutionPackager.exe.config" />
     <None Include="Navicon.Plugins.snk" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Content Include="bin\coretools\CrmSvcUtil.exe" />
-    <Content Include="bin\coretools\CrmSvcUtil.xml" />
-    <Content Include="bin\coretools\Microsoft.ApplicationInsights.dll" />
-    <Content Include="bin\coretools\Microsoft.Crm.Sdk.Proxy.dll" />
-    <Content Include="bin\coretools\Microsoft.Deployment.Compression.Cab.dll" />
-    <Content Include="bin\coretools\Microsoft.Deployment.Compression.dll" />
-    <Content Include="bin\coretools\Microsoft.IdentityModel.Clients.ActiveDirectory.dll" />
-    <Content Include="bin\coretools\Microsoft.PowerPlatform.Tooling.BatchedTelemetry.dll" />
-    <Content Include="bin\coretools\Microsoft.Rest.ClientRuntime.dll" />
-    <Content Include="bin\coretools\Microsoft.Xrm.Sdk.Deployment.dll" />
-    <Content Include="bin\coretools\Microsoft.Xrm.Sdk.dll" />
-    <Content Include="bin\coretools\Microsoft.Xrm.Tooling.Connector.dll" />
-    <Content Include="bin\coretools\Microsoft.Xrm.Tooling.CrmConnectControl.dll" />
-    <Content Include="bin\coretools\Microsoft.Xrm.Tooling.Ui.Styles.dll" />
-    <Content Include="bin\coretools\Newtonsoft.Json.dll" />
-    <Content Include="bin\coretools\Other Redistributable.txt" />
-    <Content Include="bin\coretools\pacTelemetryUpload.exe" />
-    <Content Include="bin\coretools\SolutionPackager.exe" />
-    <Content Include="bin\coretools\SolutionPackagerLib.dll" />
-    <Content Include="bin\coretools\System.Diagnostics.DiagnosticSource.dll" />
-    <Content Include="bin\coretools\System.Memory.dll" />
-    <Content Include="bin\coretools\System.Runtime.CompilerServices.Unsafe.dll" />
-    <Content Include="bin\coretools\System.Text.Json.dll" />
-    <Content Include="bin\coretools\System.ValueTuple.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="bin\Debug\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Navicon.Common\Navicon.Common.csproj">
-      <Project>{05fbc4ec-8cd5-45b7-870e-31b015c868fe}</Project>
-      <Name>Navicon.Common</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Navicon.Repository\Navicon.Repository.csproj">
       <Project>{fe00f40d-a78b-40ec-b2c4-6f134cfcdfa7}</Project>
       <Name>Navicon.Repository</Name>
