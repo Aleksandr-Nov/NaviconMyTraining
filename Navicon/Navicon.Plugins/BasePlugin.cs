@@ -19,7 +19,19 @@ namespace Navicon.Plugins
                 return targetEntity.ToEntity<T>();
             }
 
-            throw new Exception("Target not found");
+            throw new Exception("Обьект target отсутствует");
+        }
+
+        public T GetPreEntity<T>(IServiceProvider serviceProvider) where T : Entity
+        {
+            var pluginContext = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
+            if (pluginContext.PreEntityImages.Contains("PreEntityImage"))
+            {
+                var preImages = (Entity)pluginContext.PreEntityImages["PreEntityImage"];
+                return preImages.ToEntity<T>();
+            }
+
+            throw new Exception("Обьект PreEntityImage отсутствует");
         }
 
         public IOrganizationService GetService(IServiceProvider serviceProvider)

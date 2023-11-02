@@ -25,9 +25,9 @@ namespace Navicon.Plugins.Agreement.Handlers
                 throw new ArgumentNullException(nameof(target), "Обьект target отсутствует");
             }
 
-            if (target.nav_contact == null)
+            if (target.nav_contact == null || target.nav_contact.Id == null || target.nav_date == null)
             {
-                throw new ArgumentNullException(nameof(target.nav_contact), "Обьект target.nav_contact отсутствует");
+                return;
             }
 
             if (IsFirstAgreement(target.nav_contact.Id))
@@ -70,14 +70,9 @@ namespace Navicon.Plugins.Agreement.Handlers
         /// </summary>
         public void SetFirstDateAgreement(Guid contactId, DateTime? agreementDate)
         {
-            if (contactId == Guid.Empty)
+            if (contactId == null || contactId == Guid.Empty || agreementDate == null)
             {
-                throw new ArgumentNullException(nameof(contactId), "Обьект contactId отсутствует");
-            }
-
-            if (agreementDate == null)
-            {
-                throw new ArgumentNullException(nameof(agreementDate), "Обьект agreementDate отсутствует");
+                return ;
             }
 
             var contact = _service.Retrieve(Contact.EntityLogicalName, contactId, new ColumnSet(false));

@@ -52,7 +52,7 @@ namespace Navicon.Plugins.Invoices.Handlers
 
             if (target.nav_dogovorid == null)
             {
-                throw new ArgumentNullException(nameof(target.nav_dogovorid), "Обьект target.nav_dogovorid отсутствует");
+                return;
             }
 
             var agreement = AgreementAmountOperation(target);
@@ -63,31 +63,21 @@ namespace Navicon.Plugins.Invoices.Handlers
         /// Пересчитывает поле [Оплаченная Сумма] в объекте Договор при удалении счета со статусом оплачено.
         /// Задание 5 п.3
         /// </summary>
-        public void WithdrawTotalAmount(IPluginExecutionContext context)
+        public void WithdrawTotalAmount(nav_invoice preImage)
         {
-            if (context == null)
+            if (preImage == null)
             {
-                throw new ArgumentNullException(nameof(context), "Обьект context отсутствует");
+                throw new ArgumentNullException(nameof(preImage), "Обьект preImage отсутствует");
             }
 
-            if (context.PrimaryEntityId == null)
+            if (preImage.Id == null)
             {
-                throw new ArgumentNullException(nameof(context.PrimaryEntityId), "Обьект context.PrimaryEntityId отсутствует");
+                throw new ArgumentNullException(nameof(preImage.Id), "Обьект preImage.Id отсутствует");
             }
 
-            var invoice = _service.Retrieve(
-                nav_invoice.EntityLogicalName,
-                context.PrimaryEntityId,
-                new ColumnSet(
-                    nav_invoice.Fields.nav_dogovorid,
-                    nav_invoice.Fields.nav_amount,
-                    nav_invoice.Fields.nav_fact))
-                .ToEntity<nav_invoice>();
-
-            if (invoice.nav_fact == true)
+            if (preImage.nav_fact == true)
             {
-                var agreement = new nav_agreement();
-                AgreementAmountOperation(invoice, false);
+                AgreementAmountOperation(preImage, false);
             }
         }
 
@@ -98,6 +88,10 @@ namespace Navicon.Plugins.Invoices.Handlers
         /// <param name="isAddition">True = Пополнение счета. False = Списание со счета (при удалении счета)</param>
         public nav_agreement AgreementAmountOperation(nav_invoice invoice, bool isAddition = true)
         {
+            if (invoice.nav_dogovorid.Id == null || invoice.nav_amount == null)
+            {
+                return new nav_agreement();
+            }
             var agreement = _service.Retrieve(
                 nav_agreement.EntityLogicalName,
                 invoice.nav_dogovorid.Id,
@@ -113,15 +107,19 @@ namespace Navicon.Plugins.Invoices.Handlers
 
             if (agreement.nav_factsumma == null)
             {
-                agreement.nav_factsumma = new Money(0);
+                agreement.nav_factsumma = invoice.nav_amount;
             }
-
-            if (!isAddition)
+            else
             {
-                invoice.nav_amount.Value = invoice.nav_amount.Value * -1;
+                var nav_amount = invoice.nav_amount.Value;
+                if (!isAddition)
+                {
+                    nav_amount *= -1;
+                }
+
+                agreement.nav_factsumma.Value += nav_amount;
             }
 
-            agreement.nav_factsumma = new Money(invoice.nav_amount.Value + agreement.nav_factsumma.Value);
             _service.Update(agreement);
             return agreement;
         }
@@ -136,12 +134,12 @@ namespace Navicon.Plugins.Invoices.Handlers
         {
             if (agreement == null)
             {
-                throw new ArgumentNullException(nameof(agreement), "Обьект agreement отсутствует");
+                return;
             }
 
             if (agreement.nav_factsumma == null || agreement.nav_summa == null)
             {
-                throw new ArgumentNullException("Обьект agreement.nav_factsumma или agreement.nav_summa отсутствует");
+                return;
             }
 
             if (agreement.nav_factsumma.Value > agreement.nav_summa.Value)
@@ -155,7 +153,10 @@ namespace Navicon.Plugins.Invoices.Handlers
                 _service.Update(agreement);
             }
 
-            target.nav_paydate = DateTime.Now;
+            if (target.nav_paydate != null)
+            {
+                target.nav_paydate = DateTime.Now;
+            }
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Navicon.Plugins.Invoices.Handlers;
+using Navicon.Repository.Entities;
 using System;
 
 namespace Navicon.Plugins.Invoices
@@ -12,8 +13,9 @@ namespace Navicon.Plugins.Invoices
             try
             {
                 var service = GetService(serviceProvider);
+                var preImage = GetPreEntity<nav_invoice>(serviceProvider);
                 InvoiceService invoiceService = new InvoiceService(service);
-                invoiceService.WithdrawTotalAmount(GetContext(serviceProvider));              
+                invoiceService.WithdrawTotalAmount(preImage);              
             }
             catch (Exception exc)
             {
