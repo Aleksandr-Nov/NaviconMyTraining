@@ -14,7 +14,7 @@ namespace Navicon.Plugins.Invoices
             {
                 var target = GetTarget<nav_invoice>(serviceProvider);
                 var service = GetService(serviceProvider);
-                InvoiceService invoiceService = new InvoiceService(service);
+                var invoiceService = new InvoiceService(service);
                 invoiceService.CheckInvoiceType(target);
 
                 if (target.nav_fact == true && target.nav_amount != null)

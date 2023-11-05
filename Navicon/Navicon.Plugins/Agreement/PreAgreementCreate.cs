@@ -12,9 +12,10 @@ namespace Navicon.Plugins.Agreement
             var traceService = GetTrace(serviceProvider);
             try
             {
+                var target = GetTarget<nav_agreement>(serviceProvider);
                 var service = GetService(serviceProvider);
-                AgreementService agreementService = new AgreementService(service);
-                agreementService.AutoSetDate(GetTarget<nav_agreement>(serviceProvider));
+                var agreementService = new AgreementService(service);
+                agreementService.AutoSetDate(target);
             }
             catch (Exception exc)
             {

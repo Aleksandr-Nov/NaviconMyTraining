@@ -11,13 +11,14 @@ namespace Navicon.Plugins.Сommunication.Handlers
 
         public CommunicationService(IOrganizationService service)
         {
-            _service = service ?? throw new ArgumentNullException(nameof(_service));
+            _service = service ?? throw new ArgumentNullException(nameof(service));
         }
 
         /// <summary>
         /// Проверяет что обьект средства связи с типом [Основной] является единственным для контакта
         /// Задание 5 п.6
         /// </summary>
+        /// <param name="target">Объект типа nav_communication</param>
         public void CheckCommunication(nav_communication target)
         {
             if (target == null)
@@ -37,14 +38,15 @@ namespace Navicon.Plugins.Сommunication.Handlers
         /// Обращение к бд для поиска повторяющихся записей.
         /// Задание 5 п.6
         /// </summary>
+        /// <param name="target">Объект типа nav_communication. Обязательные поля nav_type и nav_contactid</param>
         public void CheckMainCommunication(nav_communication target)
         {
-            if (target.nav_type == null || target.nav_contactid == null)
+            if (target?.nav_type == null || target.nav_contactid == null)
             {
                 return;
             }
 
-            QueryExpression query = new QueryExpression(nav_communication.EntityLogicalName)
+            var query = new QueryExpression(nav_communication.EntityLogicalName)
             {
                 NoLock = true,
                 TopCount = 1,

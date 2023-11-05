@@ -11,13 +11,14 @@ namespace Navicon.Plugins.Agreement.Handlers
 
         public AgreementService(IOrganizationService service)
         {
-            _service = service ?? throw new ArgumentNullException(nameof(_service));
+            _service = service ?? throw new ArgumentNullException(nameof(service));
         }
 
         /// <summary>
         /// Автоматическое заполнение поля [Дата первого договора] на объекте Контакт.
         /// Задание 5 п.2
         /// </summary>
+        /// <param name="target">Объект типа nav_agreement. Обязательные поля nav_contact.Id и nav_date</param>
         public void AutoSetDate(nav_agreement target)
         {
             if (target == null)
@@ -25,7 +26,7 @@ namespace Navicon.Plugins.Agreement.Handlers
                 throw new ArgumentNullException(nameof(target), "Обьект target отсутствует");
             }
 
-            if (target.nav_contact == null || target.nav_contact.Id == null || target.nav_date == null)
+            if (target.nav_contact == null || target.nav_contact.Id == Guid.Empty || target.nav_date == null)
             {
                 return;
             }
@@ -40,9 +41,11 @@ namespace Navicon.Plugins.Agreement.Handlers
         /// <summary>
         /// Проверка существует ли у клиента договор.
         /// </summary>
+        /// <param name="contactId">Id объекта Контакт для проверки наличия договора</param>
+        /// <returns>True если у объекта Контакт нет связанных с ним договоров</returns>
         public bool IsFirstAgreement(Guid contactId)
         {
-            if (contactId == null || contactId == Guid.Empty)
+            if (contactId == Guid.Empty)
             {
                 throw new ArgumentNullException(nameof(contactId), "Обьект contactId отсутствует");
             }
@@ -68,9 +71,11 @@ namespace Navicon.Plugins.Agreement.Handlers
         /// <summary>
         /// Установка даты на обьекте Контакт.
         /// </summary>
+        /// <param name="contactId">Id объекта Контакт для установки даты</param>
+        /// <param name="agreementDate">Дата договора</param>
         public void SetFirstDateAgreement(Guid contactId, DateTime? agreementDate)
         {
-            if (contactId == null || contactId == Guid.Empty || agreementDate == null)
+            if (contactId == Guid.Empty || agreementDate == null)
             {
                 return ;
             }

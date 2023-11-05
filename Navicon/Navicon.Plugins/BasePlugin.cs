@@ -13,25 +13,27 @@ namespace Navicon.Plugins
         public T GetTarget<T>(IServiceProvider serviceProvider) where T : Entity
         {
             var pluginContext = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
-            if (pluginContext.InputParameters.Contains("Target"))
+            if (!pluginContext.InputParameters.Contains("Target"))
             {
-                var targetEntity = (Entity)pluginContext.InputParameters["Target"];
-                return targetEntity.ToEntity<T>();
+                throw new Exception("Обьект target отсутствует");
             }
+            
+            var targetEntity = (Entity)pluginContext.InputParameters["Target"];
+            return targetEntity.ToEntity<T>();
 
-            throw new Exception("Обьект target отсутствует");
         }
 
         public T GetPreEntity<T>(IServiceProvider serviceProvider) where T : Entity
         {
             var pluginContext = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
-            if (pluginContext.PreEntityImages.Contains("PreEntityImage"))
+            if (!pluginContext.PreEntityImages.Contains("PreEntityImage"))
             {
-                var preImages = (Entity)pluginContext.PreEntityImages["PreEntityImage"];
-                return preImages.ToEntity<T>();
+                throw new Exception("Обьект PreEntityImage отсутствует");
             }
+            
+            var preImages = (Entity)pluginContext.PreEntityImages["PreEntityImage"];
+            return preImages.ToEntity<T>();
 
-            throw new Exception("Обьект PreEntityImage отсутствует");
         }
 
         public IOrganizationService GetService(IServiceProvider serviceProvider)

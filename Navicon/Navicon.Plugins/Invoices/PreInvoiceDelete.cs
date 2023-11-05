@@ -14,7 +14,7 @@ namespace Navicon.Plugins.Invoices
             {
                 var service = GetService(serviceProvider);
                 var preImage = GetPreEntity<nav_invoice>(serviceProvider);
-                InvoiceService invoiceService = new InvoiceService(service);
+                var invoiceService = new InvoiceService(service);
                 invoiceService.WithdrawTotalAmount(preImage);              
             }
             catch (Exception exc)
