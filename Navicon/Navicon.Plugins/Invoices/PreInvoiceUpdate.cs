@@ -13,11 +13,12 @@ namespace Navicon.Plugins.Invoices
             try
             {
                 var target = GetTarget<nav_invoice>(serviceProvider);
+                var preTarget = GetPreEntity<nav_invoice>(serviceProvider);
                 var service = GetService(serviceProvider);
                 var invoiceService = new InvoiceService(service);
                 if (target.nav_fact == true)
                 {
-                    invoiceService.RecalculateTotalAmount(target, true);
+                    invoiceService.RecalculateTotalAmount(target, preTarget);
                 }
             }
             catch (Exception exc)

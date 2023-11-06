@@ -18,7 +18,7 @@ namespace Navicon.Plugins.Agreement.Handlers
         /// Автоматическое заполнение поля [Дата первого договора] на объекте Контакт.
         /// Задание 5 п.2
         /// </summary>
-        /// <param name="target">Объект типа nav_agreement. Обязательные поля nav_contact.Id и nav_date</param>
+        /// <param name="target">Обязательные поля nav_contact.Id и nav_date</param>
         public void AutoSetDate(nav_agreement target)
         {
             if (target == null)
@@ -33,13 +33,13 @@ namespace Navicon.Plugins.Agreement.Handlers
 
             if (IsFirstAgreement(target.nav_contact.Id))
             {
-                SetFirstDateAgreement(target.nav_contact.Id, target.nav_date);
+                SetDateOnContact(target.nav_contact.Id, target.nav_date);
             }
             
         }
 
         /// <summary>
-        /// Проверка существует ли у клиента договор.
+        /// Проверка отсутствует ли у клиента договор.
         /// </summary>
         /// <param name="contactId">Id объекта Контакт для проверки наличия договора</param>
         /// <returns>True если у объекта Контакт нет связанных с ним договоров</returns>
@@ -73,26 +73,22 @@ namespace Navicon.Plugins.Agreement.Handlers
         /// </summary>
         /// <param name="contactId">Id объекта Контакт для установки даты</param>
         /// <param name="agreementDate">Дата договора</param>
-        public void SetFirstDateAgreement(Guid contactId, DateTime? agreementDate)
+        public void SetDateOnContact(Guid contactId, DateTime? agreementDate)
         {
             if (contactId == Guid.Empty || agreementDate == null)
             {
-                return ;
+                return;
             }
 
-            var contact = _service.Retrieve(Contact.EntityLogicalName, contactId, new ColumnSet(false));
+            var contact = _service.Retrieve(Contact.EntityLogicalName, contactId, new ColumnSet(false)).ToEntity<Contact>();
             if (contact == null)
             {
                 return;
             }
 
-            var contactToUpdate = new Contact()
-            {
-                Id = contact.Id,
-                nav_date = agreementDate
-            };
-
-            _service.Update(contactToUpdate);
+            contact.nav_date = agreementDate;
+            
+            _service.Update(contact);
         }
     }
 }

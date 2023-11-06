@@ -18,7 +18,7 @@ namespace Navicon.Plugins.Сommunication.Handlers
         /// Проверяет что обьект средства связи с типом [Основной] является единственным для контакта
         /// Задание 5 п.6
         /// </summary>
-        /// <param name="target">Объект типа nav_communication</param>
+        /// <param name="target">Объект приходящий при создании объекта [Средства связи]</param>
         public void CheckCommunication(nav_communication target)
         {
             if (target == null)
@@ -26,22 +26,7 @@ namespace Navicon.Plugins.Сommunication.Handlers
                 throw new ArgumentNullException(nameof(target), "Обьект target отсутствует");
             }
 
-            if (target.nav_main == false)
-            {
-                return;
-            }
-
-            CheckMainCommunication(target);
-        }
-
-        /// <summary>
-        /// Обращение к бд для поиска повторяющихся записей.
-        /// Задание 5 п.6
-        /// </summary>
-        /// <param name="target">Объект типа nav_communication. Обязательные поля nav_type и nav_contactid</param>
-        public void CheckMainCommunication(nav_communication target)
-        {
-            if (target?.nav_type == null || target.nav_contactid == null)
+            if (target.nav_main == false || target?.nav_type == null || target.nav_contactid == null)
             {
                 return;
             }
@@ -59,7 +44,6 @@ namespace Navicon.Plugins.Сommunication.Handlers
                             new ConditionExpression(nav_communication.Fields.nav_main, ConditionOperator.Equal, true)
                         }
                     }
-
             };
 
             var communication = _service.RetrieveMultiple(query).Entities;
