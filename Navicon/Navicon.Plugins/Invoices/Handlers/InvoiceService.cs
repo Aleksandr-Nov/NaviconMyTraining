@@ -39,7 +39,7 @@ namespace Navicon.Plugins.Invoices.Handlers
         /// Задание 5 п.3
         /// </summary>
         /// <param name="target">Используется для проверки наличия договора и для передачи в другие методы</param>
-        /// <param name="thisUpdate">В том случае если метод вызывается на плагине Update значение = true</param>
+        /// <param name="preTarget">В том случае если метод вызывается на плагине Update объект заполняетя данными до обновления</param>
         public void RecalculateTotalAmount(nav_invoice target, nav_invoice preTarget = null)
         {
             if (target == null)
@@ -103,18 +103,18 @@ namespace Navicon.Plugins.Invoices.Handlers
                 return new nav_agreement();
             }
             
-            var AgreementQuery = _service.Retrieve(
+            var agreementQuery = _service.Retrieve(
                 nav_agreement.EntityLogicalName,
                 invoice.nav_dogovorid.Id,
                 new ColumnSet(
                     nav_agreement.Fields.nav_factsumma));
 
-            if (AgreementQuery == null)
+            if (agreementQuery == null)
             {
-                throw new ArgumentNullException(nameof(AgreementQuery), "Обьект agreement отсутствует");
+                throw new ArgumentNullException(nameof(agreementQuery), "Обьект agreement отсутствует");
             }
 
-            var agreement = AgreementQuery.ToEntity<nav_agreement>();
+            var agreement = agreementQuery.ToEntity<nav_agreement>();
 
             if (agreement.nav_factsumma == null)
             {
@@ -174,6 +174,7 @@ namespace Navicon.Plugins.Invoices.Handlers
         /// Заполнение полей при операции Update
         /// </summary>
         /// <param name="target">Объект типа nav_invoice для заполнения полей нужными данными</param>
+        /// <param name="oldTarget">Данные до вызова плагина</param>
         public void ActionWhenUpdate(nav_invoice target, nav_invoice oldTarget)
         {
             if (target.nav_dogovorid == null)
