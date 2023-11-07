@@ -93,21 +93,17 @@ namespace Navicon.Plugins.Invoices.Handlers
         /// <returns>Объект типа nav_agreement с рассчитанным полем [Оплаченная Сумма]</returns>
         public nav_agreement AgreementAmountOperation(nav_invoice invoice, bool isAddition = true)
         {
-            if (invoice?.nav_dogovorid == null || invoice.nav_amount == null)
+            if (invoice?.nav_dogovorid == null 
+                || invoice.nav_dogovorid.Id == Guid.Empty 
+                || invoice.nav_amount == null)
             {
-                return new nav_agreement();
-            }
-            
-            if (invoice.nav_dogovorid.Id == Guid.Empty || invoice.nav_amount == null)
-            {
-                return new nav_agreement();
+                return null;
             }
             
             var agreementQuery = _service.Retrieve(
                 nav_agreement.EntityLogicalName,
                 invoice.nav_dogovorid.Id,
-                new ColumnSet(
-                    nav_agreement.Fields.nav_factsumma));
+                new ColumnSet(nav_agreement.Fields.nav_factsumma));
 
             if (agreementQuery == null)
             {
