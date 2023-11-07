@@ -159,6 +159,7 @@ namespace Navicon.Plugins.Invoices.Handlers
             {
                 var agreementUpdate = new nav_agreement()
                 {
+                    Id = agreement.Id,
                     nav_fact = true
                 };
                 _service.Update(agreementUpdate);
