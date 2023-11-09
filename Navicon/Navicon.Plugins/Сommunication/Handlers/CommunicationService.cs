@@ -26,7 +26,7 @@ namespace Navicon.Plugins.Сommunication.Handlers
                 throw new ArgumentNullException(nameof(target), "Обьект target отсутствует");
             }
 
-            if (target.nav_main == false || target?.nav_type == null || target.nav_contactid == null)
+            if (target.nav_main == false || target.nav_type == null || target.nav_contactid == null)
             {
                 return;
             }

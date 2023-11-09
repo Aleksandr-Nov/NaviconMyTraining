@@ -47,18 +47,10 @@ namespace Navicon.Plugins.Invoices.Handlers
                 throw new ArgumentNullException(nameof(target), "Обьект target отсутствует");
             }
 
-            if (preTarget != null)
-            {
-                ActionWhenUpdate(target, preTarget);
-            }
+            var agreement = AgreementAmountOperation(target.nav_dogovorid ?? preTarget.nav_dogovorid, 
+                                                        target.nav_amount ?? preTarget.nav_amount);
 
-            if (target.nav_dogovorid == null)
-            {
-                return;
-            }
-
-            var agreement = AgreementAmountOperation(target);
-            CheckTotalSum(target, agreement);          
+            CheckTotalSum(target, agreement);        
         }
 
         /// <summary>
@@ -78,9 +70,9 @@ namespace Navicon.Plugins.Invoices.Handlers
                 throw new ArgumentNullException(nameof(preImage.Id), "Обьект preImage.Id отсутствует");
             }
 
-            if (preImage.nav_fact == true)
+            if (preImage.nav_fact == true && preImage.nav_dogovorid != null && preImage.nav_amount != null)
             {
-                AgreementAmountOperation(preImage, false);
+                AgreementAmountOperation(preImage.nav_dogovorid, preImage.nav_amount, false);
             }
         }
 
@@ -88,37 +80,36 @@ namespace Navicon.Plugins.Invoices.Handlers
         /// Пересчитывает поле [Оплаченная Сумма] в объекте Договор при создании счета со статусом оплачено.
         /// Задание 5 п.3
         /// </summary>
-        /// <param name="invoice">Используется для получение объекта [Договор] и записи суммы счета</param>
+        /// <param name="nav_dogovorid">Используется для получение Id объекта [Договор] указанного на объекте [Счет]</param>
+        /// <param name="nav_amount">Используется для получение поля [Сумма] объекта [Счет]</param>
         /// <param name="isAddition">True = Пополнение счета. False = Списание со счета (при удалении счета)</param>
         /// <returns>Объект типа nav_agreement с рассчитанным полем [Оплаченная Сумма]</returns>
-        public nav_agreement AgreementAmountOperation(nav_invoice invoice, bool isAddition = true)
+        public nav_agreement AgreementAmountOperation(EntityReference nav_dogovorid, Money nav_amount, bool isAddition = true)
         {
-            if (invoice?.nav_dogovorid == null 
-                || invoice.nav_dogovorid.Id == Guid.Empty 
-                || invoice.nav_amount == null)
+            if (nav_dogovorid == null 
+                || nav_dogovorid.Id == Guid.Empty 
+                || nav_amount == null)
             {
                 return null;
             }
             
-            var agreementQuery = _service.Retrieve(
+            var agreement = _service.Retrieve(
                 nav_agreement.EntityLogicalName,
-                invoice.nav_dogovorid.Id,
-                new ColumnSet(nav_agreement.Fields.nav_factsumma));
+                nav_dogovorid.Id,
+                new ColumnSet(nav_agreement.Fields.nav_factsumma, nav_agreement.Fields.nav_summa))?.ToEntity<nav_agreement>();
 
-            if (agreementQuery == null)
+            if (agreement == null)
             {
-                throw new ArgumentNullException(nameof(agreementQuery), "Обьект agreement отсутствует");
+                throw new ArgumentNullException(nameof(agreement), "Обьект agreement отсутствует");
             }
-
-            var agreement = agreementQuery.ToEntity<nav_agreement>();
 
             if (agreement.nav_factsumma == null)
             {
-                agreement.nav_factsumma = invoice.nav_amount;
+                agreement.nav_factsumma = nav_amount;
             }
             else
             {
-                var navAmount = invoice.nav_amount.Value;
+                var navAmount = nav_amount.Value;
                 if (!isAddition)
                 {
                     navAmount *= -1;
@@ -141,7 +132,7 @@ namespace Navicon.Plugins.Invoices.Handlers
         /// <param name="agreement">Объект типа nav_agreement с заполненными полями nav_factsumma и nav_summa</param>
         public void CheckTotalSum (nav_invoice target, nav_agreement agreement)
         {
-            if (agreement?.nav_factsumma == null || agreement.nav_summa == null)
+            if (agreement?.nav_factsumma == null || agreement?.nav_summa == null)
             {
                 return;
             }
@@ -164,29 +155,6 @@ namespace Navicon.Plugins.Invoices.Handlers
             if (target?.nav_paydate != null)
             {
                 target.nav_paydate = DateTime.Now;
-            }
-        }
-
-        /// <summary>
-        /// Заполнение полей при операции Update
-        /// </summary>
-        /// <param name="target">Объект типа nav_invoice для заполнения полей нужными данными</param>
-        /// <param name="oldTarget">Данные до вызова плагина</param>
-        public void ActionWhenUpdate(nav_invoice target, nav_invoice oldTarget)
-        {
-            if (target.nav_dogovorid == null)
-            {
-                target.nav_dogovorid = oldTarget.nav_dogovorid;
-            }
-
-            if (target.nav_amount == null)
-            {
-                target.nav_amount = oldTarget.nav_amount;
-            }
-
-            if (target.nav_paydate == null)
-            {
-                target.nav_paydate = oldTarget.nav_paydate;
             }
         }
     }
