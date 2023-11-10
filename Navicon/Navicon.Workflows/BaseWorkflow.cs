@@ -21,11 +21,17 @@ namespace Navicon.Workflows
         /// Без указания системного пользователя для которого выполняются вызовы
         /// </summary>
         /// <param name="context">Объект приходящий при вызове бизнес процесса</param>
-        public IOrganizationService GetService(CodeActivityContext context)
+        protected static IOrganizationService GetService(CodeActivityContext context)
         {
             var serviceFactory = context.GetExtension<IOrganizationServiceFactory>();
-            var service = serviceFactory.CreateOrganizationService(Guid.Empty);
-            if (service is IOrganizationService)
+            var workflowContext = context.GetExtension<IWorkflowContext>();
+            if (workflowContext == null || workflowContext.UserId == Guid.Empty)
+            {
+                throw new Exception("workflowContext не найден");
+            }
+            
+            var service = serviceFactory.CreateOrganizationService(workflowContext.UserId);
+            if (service != null)
             {
                 return service;
             }

@@ -57,7 +57,7 @@ namespace Navicon.Workflows.AgreementActives.Handlers
         /// <summary>
         /// Получить Entity обьекта Договор
         /// </summary>
-        public nav_agreement GetAgreement()
+        private nav_agreement GetAgreement()
         {
             return _service.Retrieve(
                 nav_agreement.EntityLogicalName,
