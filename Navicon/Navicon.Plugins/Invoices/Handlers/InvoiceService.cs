@@ -152,7 +152,7 @@ namespace Navicon.Plugins.Invoices.Handlers
                 _service.Update(agreementUpdate);
             }
 
-            if (target?.nav_paydate != null)
+            if (target != null)
             {
                 target.nav_paydate = DateTime.Now;
             }
