@@ -15,21 +15,22 @@ namespace Navicon.Workflows
         {
             throw new NotImplementedException();
         }
+        
+        /// <summary>
+        /// Получение объекта service для связи с базой данных.
+        /// Без указания системного пользователя для которого выполняются вызовы
+        /// </summary>
+        /// <param name="context">Объект приходящий при вызове бизнес процесса</param>
         public IOrganizationService GetService(CodeActivityContext context)
         {
             var serviceFactory = context.GetExtension<IOrganizationServiceFactory>();
             var service = serviceFactory.CreateOrganizationService(Guid.Empty);
-            if (service != null && service is IOrganizationService)
+            if (service is IOrganizationService)
             {
                 return service;
             }
 
             throw new Exception("Service не найден");
-        }
-
-        public IWorkflowContext GetWfContext(CodeActivityContext context)
-        {
-            return context.GetExtension<IWorkflowContext>(); ;
         }
     }
 }

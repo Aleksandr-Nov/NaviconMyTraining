@@ -2,12 +2,8 @@
 using Microsoft.Xrm.Sdk.Query;
 using Navicon.Repository.Entities;
 using System;
-using System.Activities;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Navicon.Workflows.AgreementActives.Handlers
 {
