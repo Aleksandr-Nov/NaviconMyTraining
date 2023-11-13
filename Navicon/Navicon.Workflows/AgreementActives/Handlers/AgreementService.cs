@@ -4,6 +4,7 @@ using Navicon.Repository.Entities;
 using System;
 using System.Globalization;
 using System.Linq;
+using Microsoft.Xrm.Sdk.Messages;
 
 namespace Navicon.Workflows.AgreementActives.Handlers
 {
@@ -16,19 +17,15 @@ namespace Navicon.Workflows.AgreementActives.Handlers
         {
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _agreementRef = agreementRef ?? throw new ArgumentNullException(nameof(agreementRef));
-            if (agreementRef == null || agreementRef.Id == Guid.Empty)
-            {
-                throw new ArgumentNullException(nameof(agreementRef), "AgreementRef (входящие значения бизнес процесса) не найден");
-            }
         }
 
         /// <summary>
-        /// Поиск связанного с договором счета.
+        /// Проверка на существование связанного с договором счета.
         /// Задание 6 п.1-2
         /// </summary>
         /// <param name="checkInvoiceStatusOrType">добавить фильтр "счет со статусом Оплачено" или "счет с типом Вручную"</param>
         /// <returns>true в случае если по заданным параметрам ничего не найдено</returns>
-        public bool CheckLinkedInvoice(bool checkInvoiceStatusOrType = false)
+        public bool ExistLinkedInvoice(bool checkInvoiceStatusOrType = false)
         {
             var query = new QueryExpression(nav_invoice.EntityLogicalName)
             {
@@ -51,7 +48,7 @@ namespace Navicon.Workflows.AgreementActives.Handlers
             }
             
             var invoice = _service.RetrieveMultiple(query).Entities;
-            return !invoice.Any();
+            return invoice.Count == 0;
         }
 
         /// <summary>
@@ -88,18 +85,26 @@ namespace Navicon.Workflows.AgreementActives.Handlers
                     }
                 }
             };
+            
             var invoices = _service.RetrieveMultiple(query).Entities;
-
-            if (!invoices.Any())
+            var multipleRequest = new ExecuteMultipleRequest()
             {
-                return;
-            }
-
-            foreach (var invoice in invoices)
+                Settings = new ExecuteMultipleSettings()
+                {
+                    ContinueOnError = false,
+                    ReturnResponses = true
+                },
+                Requests = new OrganizationRequestCollection()
+            };
+            
+            foreach (var invoice in invoices.Select(x => x.ToEntityReference()))
             {
-                _service.Delete(invoice.LogicalName, invoice.Id);
+                var deleteRequest = new DeleteRequest { Target = invoice };
+                multipleRequest.Requests.Add(deleteRequest);
             }
+            _service.Execute(multipleRequest);
         }
+        
 
         /// <summary>
         /// Установить на договоре поле [Дата графика платежей] =Текущей датой + 1 день
@@ -140,27 +145,26 @@ namespace Navicon.Workflows.AgreementActives.Handlers
                     "Creditperiod не найден. Заполните поле [Срок кредита]");
             }
 
-            var creditPeriodInMonth = (int)agreement.nav_creditperiod * 12;
+            var creditPeriodInMonth = agreement.nav_creditperiod * 12;
             var paymentInMonth = agreement.nav_creditamount.Value / creditPeriodInMonth;
 
             var now = DateTime.Now;
             var firstPaymentDay = new DateTime(now.Year, now.Month + 1, 1);
-
+            var invoice = new nav_invoice();
+            
             for (var i = 0; i < creditPeriodInMonth; i++)
-			{
-                var invoice = new nav_invoice()
-                {
-                    nav_name = agreement.nav_name
-                        + " " + firstPaymentDay.ToString("MMMM", new CultureInfo("ru-RU"))
-                        + " " + firstPaymentDay.Year.ToString(),
-                    nav_date = now,
-                    nav_paydate = firstPaymentDay,
-                    nav_dogovorid = _agreementRef,
-                    nav_fact = false,
-                    nav_type = nav_type.Avtomaticheskoe_sozdanie,
-                    nav_amount = new Money(paymentInMonth)
-                };
-
+            {
+                invoice.Id = Guid.Empty;
+                invoice.nav_name = agreement.nav_name
+                                   + " " + firstPaymentDay.ToString("MMMM", new CultureInfo("ru-RU"))
+                                   + " " + firstPaymentDay.Year.ToString();
+                invoice.nav_date = now;
+                invoice.nav_paydate = firstPaymentDay;
+                invoice.nav_dogovorid = _agreementRef;
+                invoice.nav_fact = false;
+                invoice.nav_type = nav_type.Avtomaticheskoe_sozdanie;
+                invoice.nav_amount = new Money(paymentInMonth.Value);
+                        
                 _service.Create(invoice);
                 firstPaymentDay = firstPaymentDay.AddMonths(1);
             }

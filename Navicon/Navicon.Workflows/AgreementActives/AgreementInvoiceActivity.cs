@@ -29,7 +29,7 @@ namespace Navicon.Workflows.AgreementActives
                 var service = GetService(context);
                 var agreementService = new AgreementService(service, agreementRef);
 
-                if (!agreementService.CheckLinkedInvoice(true))
+                if (!agreementService.ExistLinkedInvoice(true))
                 {
                     IsValid.Set(context, false);
                     return;

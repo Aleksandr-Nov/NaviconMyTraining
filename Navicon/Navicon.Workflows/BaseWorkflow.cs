@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Navicon.Workflows
 {
-    public class BaseWorkflow : CodeActivity
+    public abstract class BaseWorkflow : CodeActivity
     {
         protected override void Execute(CodeActivityContext context)
         {
@@ -21,7 +21,7 @@ namespace Navicon.Workflows
         /// Без указания системного пользователя для которого выполняются вызовы
         /// </summary>
         /// <param name="context">Объект приходящий при вызове бизнес процесса</param>
-        protected static IOrganizationService GetService(CodeActivityContext context)
+        protected IOrganizationService GetService(CodeActivityContext context)
         {
             var serviceFactory = context.GetExtension<IOrganizationServiceFactory>();
             var workflowContext = context.GetExtension<IWorkflowContext>();
