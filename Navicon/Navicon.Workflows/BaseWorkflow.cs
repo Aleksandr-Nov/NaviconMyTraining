@@ -11,17 +11,12 @@ namespace Navicon.Workflows
 {
     public abstract class BaseWorkflow : CodeActivity
     {
-        protected override void Execute(CodeActivityContext context)
-        {
-            throw new NotImplementedException();
-        }
-        
         /// <summary>
         /// Получение объекта service для связи с базой данных.
         /// Без указания системного пользователя для которого выполняются вызовы
         /// </summary>
         /// <param name="context">Объект приходящий при вызове бизнес процесса</param>
-        protected IOrganizationService GetService(CodeActivityContext context)
+        protected static IOrganizationService GetService(CodeActivityContext context)
         {
             var serviceFactory = context.GetExtension<IOrganizationServiceFactory>();
             var workflowContext = context.GetExtension<IWorkflowContext>();

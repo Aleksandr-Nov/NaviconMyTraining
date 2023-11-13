@@ -10,9 +10,19 @@ namespace Navicon.Workflows.AgreementActives.Handlers
 {
     public class AgreementService
     {
+        /// <summary>
+        /// Используется для установки региональных параметров.
+        /// </summary>
+        private static readonly CultureInfo Culture = new CultureInfo("ru-RU");
+        
         private readonly IOrganizationService _service;
         private readonly EntityReference _agreementRef;
 
+        /// <summary>
+        /// Конструктор инициализирующий _service для доступа к данным и _agreementRef для получения данных об объекте
+        /// </summary>
+        /// <param name="service">Обеспечивает доступ к БД</param>
+        /// <param name="agreementRef">Объект в рамках которого был применен бизнес процесс</param>
         public AgreementService(IOrganizationService service, EntityReference agreementRef)
         {
             _service = service ?? throw new ArgumentNullException(nameof(service));
@@ -87,22 +97,19 @@ namespace Navicon.Workflows.AgreementActives.Handlers
             };
             
             var invoices = _service.RetrieveMultiple(query).Entities;
-            var multipleRequest = new ExecuteMultipleRequest()
+            var multipleDeleteRequest = new ExecuteMultipleRequest()
             {
                 Settings = new ExecuteMultipleSettings()
                 {
-                    ContinueOnError = false,
-                    ReturnResponses = true
+                    ContinueOnError = true,
+                    ReturnResponses = false
                 },
                 Requests = new OrganizationRequestCollection()
             };
             
-            foreach (var invoice in invoices.Select(x => x.ToEntityReference()))
-            {
-                var deleteRequest = new DeleteRequest { Target = invoice };
-                multipleRequest.Requests.Add(deleteRequest);
-            }
-            _service.Execute(multipleRequest);
+            multipleDeleteRequest.Requests.AddRange(invoices.Select(e => new DeleteRequest() { Target = e.ToEntityReference() }));
+
+            _service.Execute(multipleDeleteRequest);
         }
         
 
@@ -145,29 +152,40 @@ namespace Navicon.Workflows.AgreementActives.Handlers
                     "Creditperiod не найден. Заполните поле [Срок кредита]");
             }
 
-            var creditPeriodInMonth = agreement.nav_creditperiod * 12;
-            var paymentInMonth = agreement.nav_creditamount.Value / creditPeriodInMonth;
+            var creditPeriodInMonth = agreement.nav_creditperiod.Value * 12;
+            var paymentInMonth = new Money(agreement.nav_creditamount.Value / creditPeriodInMonth);
 
             var now = DateTime.Now;
             var firstPaymentDay = new DateTime(now.Year, now.Month + 1, 1);
-            var invoice = new nav_invoice();
+            var invoice = new nav_invoice()
+            {
+                nav_date = now,
+                nav_dogovorid = _agreementRef,
+                nav_fact = false,
+                nav_type = nav_type.Avtomaticheskoe_sozdanie,
+                nav_amount = paymentInMonth
+            };
             
+            var multipleCreateRequest = new ExecuteMultipleRequest()
+            {
+                Settings = new ExecuteMultipleSettings()
+                {
+                    ContinueOnError = true,
+                    ReturnResponses = false
+                },
+                Requests = new OrganizationRequestCollection()
+            };
+            
+            var navName = agreement.nav_name + " ";
             for (var i = 0; i < creditPeriodInMonth; i++)
             {
-                invoice.Id = Guid.Empty;
-                invoice.nav_name = agreement.nav_name
-                                   + " " + firstPaymentDay.ToString("MMMM", new CultureInfo("ru-RU"))
-                                   + " " + firstPaymentDay.Year.ToString();
-                invoice.nav_date = now;
+                invoice.nav_name = navName + firstPaymentDay.ToString("MMMM yyyy", Culture);
                 invoice.nav_paydate = firstPaymentDay;
-                invoice.nav_dogovorid = _agreementRef;
-                invoice.nav_fact = false;
-                invoice.nav_type = nav_type.Avtomaticheskoe_sozdanie;
-                invoice.nav_amount = new Money(paymentInMonth.Value);
-                        
-                _service.Create(invoice);
+                     
+                multipleCreateRequest.Requests.Add(new CreateRequest() { Target =  invoice});
                 firstPaymentDay = firstPaymentDay.AddMonths(1);
             }
+            _service.Execute(multipleCreateRequest);
         }
     }
 }
