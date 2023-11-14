@@ -19,23 +19,15 @@ namespace Navicon.Workflows.AgreementActives
 
         protected override void Execute(CodeActivityContext context)
         {
-            try
+            var agreementRef = AgreementReference.Get(context);
+            if (agreementRef == null || agreementRef.Id == Guid.Empty)
             {
-                var agreementRef = AgreementReference.Get(context);
-                if (agreementRef == null || agreementRef.Id == Guid.Empty)
-                {
-                    throw new ArgumentNullException(nameof(agreementRef), "AgreementRef (входящие значения бизнес процесса) не найден");
-                }
-                
-                var service = GetService(context);
-                var agreementService = new AgreementService(service, agreementRef);
-                IsValid.Set(context, agreementService.ExistLinkedInvoice());
+                throw new ArgumentNullException(nameof(agreementRef), "AgreementRef (входящие значения бизнес процесса) не найден");
             }
-            catch (Exception exc)
-            {
-                throw new Exception(exc.Message);
-            }
-
+            
+            var service = GetService(context);
+            var agreementService = new AgreementService(service, agreementRef);
+            IsValid.Set(context, agreementService.ExistLinkedInvoice());
         }
     }
 }
