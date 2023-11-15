@@ -157,14 +157,7 @@ namespace Navicon.Workflows.AgreementActives.Handlers
 
             var now = DateTime.Now;
             var firstPaymentDay = new DateTime(now.Year, now.Month + 1, 1);
-            var invoice = new nav_invoice()
-            {
-                nav_date = now,
-                nav_dogovorid = _agreementRef,
-                nav_fact = false,
-                nav_type = nav_type.Avtomaticheskoe_sozdanie,
-                nav_amount = paymentInMonth
-            };
+
             
             var multipleCreateRequest = new ExecuteMultipleRequest()
             {
@@ -179,10 +172,18 @@ namespace Navicon.Workflows.AgreementActives.Handlers
             var navName = agreement.nav_name + " ";
             for (var i = 0; i < creditPeriodInMonth; i++)
             {
-                invoice.nav_name = navName + firstPaymentDay.ToString("MMMM yyyy", Culture);
-                invoice.nav_paydate = firstPaymentDay;
-                     
-                multipleCreateRequest.Requests.Add(new CreateRequest() { Target =  invoice});
+                var invoice = new nav_invoice()
+                {
+                    nav_date = now,
+                    nav_dogovorid = _agreementRef,
+                    nav_fact = false,
+                    nav_type = nav_type.Avtomaticheskoe_sozdanie,
+                    nav_amount = paymentInMonth,
+                    nav_name = navName + firstPaymentDay.ToString("MMMM yyyy", Culture),
+                    nav_paydate = firstPaymentDay
+                };
+
+                multipleCreateRequest.Requests.Add(new CreateRequest() { Target = invoice });
                 firstPaymentDay = firstPaymentDay.AddMonths(1);
             }
             _service.Execute(multipleCreateRequest);
